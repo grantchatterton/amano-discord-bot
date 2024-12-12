@@ -1,10 +1,11 @@
 import { AttachmentBuilder, Events } from 'discord.js';
-import * as config from './config.js';
-import * as util from './util.js';
+import * as config from '../util/message/config.js';
+import * as util from '../util/message/util.js';
 
 export default {
 	name: Events.MessageCreate,
 	async execute(message) {
+		console.log('called');
 		if (
 			!message.author.bot && // make sure a bot didn't send the message (including the one here)
 			util.hasSwear(message.content) && // ensure the message contains a swear
