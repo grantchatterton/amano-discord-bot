@@ -89,6 +89,8 @@ const AMANO_NOW_NOW_QUOTES = AMANO_QUOTES.filter((quote) => {
 	return quoteLower.includes('now, now') || quoteLower.includes('there, there');
 });
 
+
+
 export default {
 	name: Events.MessageCreate,
 	async execute(message) {},
