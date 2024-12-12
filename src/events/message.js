@@ -5,7 +5,7 @@ import * as util from '../util/message/util.js';
 export default {
 	name: Events.MessageCreate,
 	async execute(message) {
-		console.log('called');
+		// console.log('called');
 		if (
 			!message.author.bot && // make sure a bot didn't send the message (including the one here)
 			util.hasSwear(message.content) && // ensure the message contains a swear
