@@ -1,5 +1,5 @@
 import * as config from './config.js';
-import { AMANO_QUOTES, AMANO_NOW_NOW_QUOTES } from './quotes.js';
+import { AMANO_NOW_NOW_QUOTES } from './quotes.js';
 import { SWEAR_WORDS } from './swears.js';
 
 // Helper function to check whether a message string contains a swear found in the "SWEAR_WORDS" array constant
@@ -30,6 +30,6 @@ function getRandomArrayElement(array) {
 }
 
 // Helper function to retrieve a random Amano quote
-export function getRandomQuote(isNowNow = true) {
-	return getRandomArrayElement(isNowNow ? AMANO_NOW_NOW_QUOTES : AMANO_QUOTES);
+export function getRandomQuote() {
+	return getRandomArrayElement(AMANO_NOW_NOW_QUOTES);
 }
