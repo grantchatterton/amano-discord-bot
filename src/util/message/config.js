@@ -1,3 +1,8 @@
-export const MESSAGE_CHANCE = 25; // Chance (percentage) of replying to a message
-export const MESSAGE_DELAY = 1; // Delay (in seconds) before replying
-export const MESSAGE_IMAGE = 'https://static.wikia.nocookie.net/aceattorney/images/4/4e/Ernest_Placating_1.gif'; // Image to send with the message
+import fs from 'node:fs';
+import path from 'node:path';
+import appRoot from 'app-root-path';
+
+const config = JSON.parse(fs.readFileSync(path.join(appRoot.path, 'config.json')));
+export const { MESSAGE_CHANCE, MESSAGE_DELAY, MESSAGE_IMAGE } = config;
+
+export default config;
