@@ -1,4 +1,4 @@
-import * as config from './config.js';
+import { MESSAGE_CHANCE } from './config.js';
 import { AMANO_NOW_NOW_QUOTES } from './quotes.js';
 import { SWEAR_WORDS } from './swears.js';
 
@@ -21,7 +21,7 @@ function getRandomInt(min, max) {
 
 // Helper function to determine whether a message should be sent
 export function shouldSendMessage() {
-	return getRandomInt(1, 100) <= config.MESSAGE_CHANCE;
+	return getRandomInt(1, 100) <= MESSAGE_CHANCE;
 }
 
 // Helper function to retrieve a random element from an array
