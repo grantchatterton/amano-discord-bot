@@ -18,3 +18,6 @@ registerEvents(commands, events, client);
 
 // Login to the client
 void client.login(process.env.DISCORD_TOKEN);
+
+// Terminate peacefully when "SIGTERM" received
+process.on('SIGTERM', () => client.destroy());
