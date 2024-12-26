@@ -4,9 +4,16 @@ import { SWEAR_WORDS } from './swears.js';
 
 // Helper function to check whether a message string contains a swear found in the "SWEAR_WORDS" array constant
 export function hasSwear(message) {
-	const messageLower = message.trim().toLowerCase();
+	const words = message
+		.trim()
+		.toLowerCase()
+		.split(/\s+/)
+		.filter((word) => {
+			return word.length > 0;
+		});
+
 	for (const swear of SWEAR_WORDS) {
-		if (messageLower.includes(swear)) {
+		if (words.includes(swear)) {
 			return true;
 		}
 	}
