@@ -2,6 +2,8 @@ import { AttachmentBuilder, Events } from 'discord.js';
 import { MESSAGE_IMAGE, MESSAGE_DELAY } from '../util/message/config.js';
 import { hasSwear, shouldSendMessage, getRandomQuote } from '../util/message/util.js';
 
+const ATTACHMENT_MESSAGE_IMAGE = new AttachmentBuilder(MESSAGE_IMAGE);
+
 export default {
 	name: Events.MessageCreate,
 	async execute(message) {
@@ -17,7 +19,7 @@ export default {
 				try {
 					await message.reply({
 						content: getRandomQuote(),
-						files: [new AttachmentBuilder(MESSAGE_IMAGE)],
+						files: [ATTACHMENT_MESSAGE_IMAGE],
 					});
 					console.log(`Replied to message ${message.content}`);
 				} catch (error) {
