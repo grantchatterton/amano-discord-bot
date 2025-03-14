@@ -1,4 +1,4 @@
-import { MESSAGE_CHANCE, MESSAGE_FUNNY_CHANCE } from './config.js';
+import { MESSAGE_CHANCE, MESSAGE_FUNNY_CHANCE, MESSAGE_FUNNY_COOLDOWN } from './config.js';
 import { AMANO_NOW_NOW_QUOTES } from './quotes.js';
 import { SWEAR_WORDS } from './swears.js';
 
@@ -23,12 +23,24 @@ export function hasSwear(message) {
 
 // Helper function to generate a random integer between [min, max]
 export function getRandomInt(min, max) {
-	return Math.floor(Math.random() * (max - min + 1)) + min;
+	const randNum = Math.floor(Math.random() * (max - min + 1)) + min;
+	console.log(`randNum = ${randNum}`);
+	return randNum;
 }
 
 // Helper function to determine if we should reply with the funny image
+let lastFunnyMessage = 0;
 export function shouldSendFunnyImage() {
-	return getRandomInt(1, 100) <= MESSAGE_FUNNY_CHANCE;
+	if (getRandomInt(1, 100) <= MESSAGE_FUNNY_CHANCE) {
+		const currSecs = Math.floor(Date.now() / 1_000); // seconds since epoch
+		const elapsedSecs = currSecs - lastFunnyMessage; // elapsed time since the last funny message was sent
+		if (elapsedSecs >= MESSAGE_FUNNY_COOLDOWN) {
+			lastFunnyMessage = currSecs;
+			return true;
+		}
+	}
+
+	return false;
 }
 
 // Helper function to determine whether a message should be sent
