@@ -1,7 +1,7 @@
 {
 	"MESSAGE_CHANCE": 25,
 	"MESSAGE_FUNNY_CHANCE": 1,
-	"MESSAGE_FUNNY_COOLDOWN": 7200,
+	"MESSAGE_FUNNY_COOLDOWN": 28800,
 	"MESSAGE_DELAY": 1,
 	"MESSAGE_IMAGE": "https://static.wikia.nocookie.net/aceattorney/images/4/4e/Ernest_Placating_1.gif"
 }
