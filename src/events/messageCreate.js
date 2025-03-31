@@ -48,9 +48,10 @@ export default {
 			}
 
 			// Fetch the max vote count for a given answer
-			const maxVoteCount = answers.reduce((prevVal, currVal) => {
-				return Math.max(prevVal.voteCount, currVal.voteCount);
-			});
+			let maxVoteCount = 0;
+			for (const answer of answers) {
+				maxVoteCount = Math.max(maxVoteCount, answer.voteCount);
+			}
 
 			// Fetch the answers which had the max vote count
 			const winningAnswers = answers.filter((answer) => answer.voteCount === maxVoteCount);
