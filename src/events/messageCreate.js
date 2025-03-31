@@ -47,17 +47,21 @@ export default {
 				return;
 			}
 
-			// Fetch the winning answer
-			const winningAnswer = answers.reduce((prevVal, currVal) => {
-				return prevVal.voteCount > currVal.voteCount ? prevVal : currVal;
+			// Fetch the max vote count for a given answer
+			const maxVoteCount = answers.reduce((prevVal, currVal) => {
+				return Math.max(prevVal.voteCount, currVal.voteCount);
 			});
 
-			// Check if the answer Grant chose and the winning answer are the same
-			if (grantAnswer.id === winningAnswer.id) {
+			// Fetch the answers which had the max vote count
+			const winningAnswers = answers.filter((answer) => answer.voteCount === maxVoteCount);
+
+			// Check if Grant's answer won
+			// We are also checking if there was a tie
+			if (winningAnswers.length === 1 && winningAnswers[0].voters.has(GRANT_USER_ID)) {
 				return;
 			}
 
-			// Reply to the poll stating it is fake!
+			// Call out the poll for being fake!
 			await pollMessage.reply('Fake Poll');
 			return;
 		}
