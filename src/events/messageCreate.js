@@ -42,10 +42,10 @@ export default {
 			// console.log(answers);
 
 			// Find the answer that Grant may have chosen
-			/*const grantAnswer = answers.find((answer) => answer.voters.has(GRANT_USER_ID));
+			const grantAnswer = answers.find((answer) => answer.voters.has(GRANT_USER_ID));
 			if (!grantAnswer) {
 				return;
-			}*/
+			}
 
 			// Fetch the max vote count for a given answer
 			let maxVoteCount = 0;
