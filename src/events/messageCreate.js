@@ -1,0 +1,27 @@
+import { AttachmentBuilder, Events } from 'discord.js';
+import { MESSAGE_SWEAR_REPLY_IMAGE } from '../config.js';
+import { getReply } from '../util/replies.js';
+import { getRandomQuote, hasSwear, shouldReplyToMessage } from '../util/util.js';
+
+export default {
+	name: Events.MessageCreate,
+	async execute(message) {
+		// Make sure a bot didn't send the message (including this one)
+		if (!message.author.bot) {
+			// Check if the message content/text is mapped to a certain reply
+			const reply = getReply(message.content.toLowerCase());
+			if (reply) {
+				// Reply to the message!
+				await message.reply(reply);
+			}
+			// Check if the message contains a swear and whether we should reply to it
+			else if (hasSwear(message.content) && shouldReplyToMessage()) {
+				// Reply to the message!
+				await message.reply({
+					content: getRandomQuote(),
+					files: [new AttachmentBuilder(MESSAGE_SWEAR_REPLY_IMAGE)],
+				});
+			}
+		}
+	},
+};
