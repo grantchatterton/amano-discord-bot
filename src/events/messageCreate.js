@@ -4,9 +4,8 @@ import { getReply } from '../util/replies.js';
 import { getRandomQuote, hasSwear, shouldReplyToMessage, getRandomInt } from '../util/util.js';
 
 const GRANT_USER_ID = '981636334768783370';
-const EVIL_JOCKEY_IMAGE_CHANCE = 25;
-const EVIL_JOCKEY_IMAGE =
-	'https://cdn.discordapp.com/attachments/696196186482409542/1378090966308880475/image0.gif?ex=687bf03a&is=687a9eba&hm=a8c2599d122a9a6ad0a7ce313dbe0a7b7854b7c802efea199f153e8d4726f53a&';
+const EVIL_JOCKEY_IMAGE_CHANCE = 100;
+const EVIL_JOCKEY_IMAGE = 'https://s4.ezgif.com/tmp/ezgif-49369d7a542a00.gif';
 
 export default {
 	name: Events.MessageCreate,
