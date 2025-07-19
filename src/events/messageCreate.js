@@ -5,7 +5,8 @@ import { getRandomQuote, hasSwear, shouldReplyToMessage, getRandomInt } from '..
 
 const GRANT_USER_ID = '981636334768783370';
 const EVIL_JOCKEY_IMAGE_CHANCE = 100;
-const EVIL_JOCKEY_IMAGE = 'https://s4.ezgif.com/tmp/ezgif-49369d7a542a00.gif';
+const EVIL_JOCKEY_IMAGE =
+	'https://cdn.discordapp.com/attachments/1315400145206120548/1395950399206199346/ezgif-49369d7a542a00.gif?ex=687c4f9e&is=687afe1e&hm=0836cc3d22cf9210103ea34016c9dbba4a63e6f2c52427420a2e46c2eedc7fd0&';
 
 export default {
 	name: Events.MessageCreate,
