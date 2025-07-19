@@ -7,11 +7,11 @@ export function addReply(text, reply) {
 }
 
 export function getReply(text) {
-	return replies.get(text);
+	return replies.get(text.trim().toLowerCase());
 }
 
 export function hasReply(text) {
-	return replies.has(text);
+	return replies.has(text.trim().toLowerCase());
 }
 
 export default {

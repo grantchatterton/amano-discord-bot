@@ -1,9 +1,12 @@
 import { AttachmentBuilder, Events, MessageType } from 'discord.js';
 import { MESSAGE_SWEAR_REPLY_IMAGE } from '../config.js';
 import { getReply } from '../util/replies.js';
-import { getRandomQuote, hasSwear, shouldReplyToMessage } from '../util/util.js';
+import { getRandomQuote, hasSwear, shouldReplyToMessage, getRandomInt } from '../util/util.js';
 
 const GRANT_USER_ID = '981636334768783370';
+const EVIL_JOCKEY_IMAGE_CHANCE = 25;
+const EVIL_JOCKEY_IMAGE =
+	'https://cdn.discordapp.com/attachments/696196186482409542/1378090966308880475/image0.gif?ex=687bf03a&is=687a9eba&hm=a8c2599d122a9a6ad0a7ce313dbe0a7b7854b7c802efea199f153e8d4726f53a&';
 
 export default {
 	name: Events.MessageCreate,
@@ -70,17 +73,21 @@ export default {
 		// Make sure a bot didn't send the message (including this one)
 		if (!message.author.bot) {
 			// Check if the message content/text is mapped to a certain reply
-			const reply = getReply(message.content.toLowerCase());
+			const reply = getReply(message.content);
 			if (reply) {
 				// Reply to the message!
 				await message.reply(reply);
+				return;
 			}
+
 			// Check if the message contains a swear and whether we should reply to it
-			else if (hasSwear(message.content) && shouldReplyToMessage()) {
+			if (hasSwear(message.content) && shouldReplyToMessage()) {
 				// Reply to the message!
+				const replyImage =
+					getRandomInt(1, 100) <= EVIL_JOCKEY_IMAGE_CHANCE ? EVIL_JOCKEY_IMAGE : MESSAGE_SWEAR_REPLY_IMAGE;
 				await message.reply({
 					content: getRandomQuote(),
-					files: [new AttachmentBuilder(MESSAGE_SWEAR_REPLY_IMAGE)],
+					files: [new AttachmentBuilder(replyImage)],
 				});
 			}
 		}
