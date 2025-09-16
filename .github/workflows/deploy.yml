@@ -22,5 +22,5 @@ jobs:
             cd ~/discord
             git pull origin main
             npm install
-            npm run deploy
+            # npm run deploy
             pm2 restart amano-discord-bot
