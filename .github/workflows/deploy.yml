@@ -1,9 +1,9 @@
-name: Deploy Node.js to VPS
+name: Deploy to VPS
 
 on:
   push:
     branches:
-      - main # Or your main branch name
+      - main # Or your deployment branch
 
 jobs:
   deploy:
@@ -12,14 +12,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Deploy to VPS
-        uses: appleboy/ssh-action@master
+      - name: Install SSH Key
+        uses: webfactory/ssh-agent@v0.9.0
         with:
-          host: ${{ secrets.VPS_HOST }}
-          username: ${{ secrets.VPS_USERNAME }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          script: |
-            cd ~/discord
-            git pull origin main
-            npm install
-            pm2 restart amano-discord-bot
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Deploy to VPS
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }} "cd ~/discord && git pull origin main && npm install && npm run deploy && pm2 restart amano-discord-bot"
