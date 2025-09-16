@@ -19,9 +19,4 @@ jobs:
           username: ${{ secrets.VPS_USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: 22
-          script: |
-            cd ~/discord
-            git pull origin master
-            npm install --only=prod
-            npm run deploy
-            pm2 restart amano-discord-bot
+          script: whoami
