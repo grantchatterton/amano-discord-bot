@@ -12,17 +12,16 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Setup SSH
-        uses: webfactory/ssh-agent@v0.9.0
+      - name: Deploy to VPS
+        uses: appleboy/ssh-action@v1.0.0 # Use a pre-built SSH action
         with:
-          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
-
-      - name: Deploy to VPS and Launch App
-        run: |
-          ssh ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }} << 'EOF'
-            cd ~/discord # Navigate to your project directory on the VPS
-            git pull origin main            # Pull the latest changes from your GitHub repository
-            npm install                     # Install/update Node.js dependencies
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd ~/discord
+            git pull origin main # Pull the latest changes
+            # Add any other commands needed for deployment (e.g., npm install, build, restart service)
+            npm install
             npm run deploy
             pm2 restart amano-discord-bot
-          EOF
