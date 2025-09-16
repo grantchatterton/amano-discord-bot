@@ -20,7 +20,7 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           passphrase: ${{ secrets.SSH_PASSPHRASE }}
           script: |
-            cd ~/discord
+            cd /home/amano/discord
             git pull origin main # Pull the latest changes
             # Add any other commands needed for deployment (e.g., npm install, build, restart service)
             npm install
