@@ -12,16 +12,16 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Set up SSH
-        uses: webfactory/ssh-agent@v0.9.0
+      - name: Deploy using ssh
+        uses: appleboy/ssh-action@master
         with:
-          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
-
-      - name: Deploy to VPS
-        run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }} << 'EOF'
-            cd ~/discord # Navigate to your application directory on the VPS
-            git pull origin main # Pull the latest changes from your GitHub repository
-            npm install # Install/update dependencies
-            pm2 restart amano-discord-bot # Restart your Node.js application using PM2 (or similar process manager)
-          EOF
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: 22
+          script: |
+            cd ~/discord
+            git pull origin master
+            git status
+            npm install --only=prod
+            pm2 restart amano-discord-bot
