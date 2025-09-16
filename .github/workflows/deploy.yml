@@ -19,7 +19,7 @@ jobs:
 
       - name: Deploy to VPS and Launch App
         run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }} << 'EOF'
+          ssh ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }} << 'EOF'
             cd ~/discord # Navigate to your project directory on the VPS
             git pull origin main            # Pull the latest changes from your GitHub repository
             npm install                     # Install/update Node.js dependencies
