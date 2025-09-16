@@ -22,10 +22,11 @@ jobs:
           script: |
             git config --global --add safe.directory /home/amano/discord
             cd /home/amano/discord
-            git fetch
-            git reset --hard HEAD
-            git merge origin/master
-            # Add any other commands needed for deployment (e.g., npm install, build, restart service)
+            mkdir temp-dir
+            git clone https://github.com/grantchatterton/amano-discord-bot temp-dir
+            mv temp-dir/.git /home/amano/discord
+            rm -rf temp-dir
+            git checkout .
             npm install --only=prod
             npm run deploy
             pm2 restart amano-discord-bot
