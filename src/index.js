@@ -1,12 +1,9 @@
+import 'dotenv/config';
 import process from 'node:process';
 import { URL } from 'node:url';
 import { Client, GatewayIntentBits, Partials } from 'discord.js';
-import initReplies from './replies.js';
 import { loadCommands, loadEvents } from './util/loaders.js';
 import { registerEvents } from './util/registerEvents.js';
-
-// Initialize the replies
-initReplies();
 
 // Initialize the client
 const client = new Client({
