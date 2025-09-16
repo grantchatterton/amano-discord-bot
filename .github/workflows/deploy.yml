@@ -22,7 +22,9 @@ jobs:
           script: |
             git config --global --add safe.directory /home/amano/discord
             cd /home/amano/discord
-            git pull origin main # Pull the latest changes
+            git fetch
+            git reset --hard HEAD
+            git merge origin/master
             # Add any other commands needed for deployment (e.g., npm install, build, restart service)
             npm install --only=prod
             npm run deploy
