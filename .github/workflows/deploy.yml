@@ -24,6 +24,6 @@ jobs:
             cd /home/amano/discord
             git pull origin main # Pull the latest changes
             # Add any other commands needed for deployment (e.g., npm install, build, restart service)
-            npm install
+            npm install --only=prod
             npm run deploy
             pm2 restart amano-discord-bot
