@@ -1,5 +1,5 @@
 services:
-  amano:
+  instance:
     build: .
     env_file:
       - .env
