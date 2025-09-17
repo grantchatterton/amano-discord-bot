@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import process from 'node:process';
 import { URL } from 'node:url';
 import { API } from '@discordjs/core/http-only';
