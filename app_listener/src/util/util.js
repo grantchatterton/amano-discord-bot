@@ -49,7 +49,7 @@ export async function runCommand(command) {
 	return false;
 }
 
-export async function launchAmanoApp() {
+export async function launchApp() {
 	const command = process.env.APP_LAUNCH_SCRIPT_PATH;
 	return runCommand(command);
 }
@@ -58,5 +58,5 @@ export default {
 	hexToBytes,
 	verifySignature,
 	runCommand,
-	launchAmanoApp,
+	launchApp,
 };

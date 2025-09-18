@@ -1,8 +1,8 @@
-import { launchAmanoApp } from "../util/util.js";
+import { launchApp } from "../util/util.js";
 
 export async function githubHandler(req, res, next) {
 	try {
-		const launchResult = await launchAmanoApp();
+		const launchResult = await launchApp();
 		if (launchResult) {
 			return next(launchResult);
 		}
@@ -11,7 +11,7 @@ export async function githubHandler(req, res, next) {
 		return next(error);
 	}
 
-	res.status(200).json({ message: "OK" });
+	return res.status(200).json({ message: "OK" });
 }
 
 export default {
