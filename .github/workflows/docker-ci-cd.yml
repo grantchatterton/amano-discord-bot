@@ -8,7 +8,7 @@ on:
 
 jobs:
   docker:
-    name: Build and Deploy to Docker Hub
+    name: Build and Deploy Container Image to Docker Hub
     runs-on: ubuntu-latest
     steps:
       - name: Login to Docker Hub
@@ -26,14 +26,17 @@ jobs:
           push: true
           tags: gchatterton/amano-discord-bot:latest
   deploy:
-    name: Deploy to VPS/Production
+    name: Deploy the App to Production
     needs: docker
-    uses: appleboy/ssh-action@v1.0.3
-    with:
-      host: ${{ secrets.VPS_HOST }}
-      username: ${{ secrets.VPS_USERNAME }}
-      key: ${{ secrets.SSH_PRIVATE_KEY }}
-      script: |
-        cd ${{ secrets.VPS_PATH }}
-        docker compose down --rmi all
-        docker compose up -d --pull always
+    runs-on: ubuntu-latest
+    steps:
+      - name: Restart/Redeploy the app on a VPS
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd ${{ secrets.VPS_PATH }}
+            docker compose down --rmi all
+            docker compose up -d --pull always
