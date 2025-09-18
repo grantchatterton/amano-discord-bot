@@ -7,17 +7,12 @@ const webhooks = new Webhooks({
 });
 
 export default async function githubMiddleware(req, res, next) {
-	const signature = req.headers["x-hub-signature-256"];
 	const body = req.body;
+	const signature = req.headers["x-hub-signature-256"];
 
-	try {
-		const result = await webhooks.verify(body, signature);
-		if (!result) {
-			return next(createHttpError(401));
-		}
-	} catch (error) {
-		console.error(error);
-		return next(error);
+	const result = await webhooks.verify(body, signature);
+	if (!result) {
+		return next(createHttpError(401));
 	}
 
 	return next();
