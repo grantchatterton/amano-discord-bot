@@ -1,4 +1,4 @@
-name: Docker Image CI
+name: Docker CI/CD
 
 on:
   push:
@@ -30,7 +30,7 @@ jobs:
     needs: docker
     runs-on: ubuntu-latest
     steps:
-      - name: Restart/Redeploy the app on a VPS
+      - name: Restart/Redeploy the app on the VPS
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.VPS_HOST }}
