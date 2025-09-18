@@ -1,4 +1,14 @@
-.vscode
-node_modules
+# Hidden files
 .env
+.eslintrc.json
 .gitignore
+.gitignore
+.misc
+.prettierrc.json
+.vscode
+
+# Directories
+app_api
+app_listener
+node_modules
+
