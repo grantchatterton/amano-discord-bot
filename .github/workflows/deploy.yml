@@ -1,0 +1,22 @@
+name: Docker Image CD
+
+on:
+  push:
+    branches:
+      - main # Or your main development branch
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Deploy to VPS
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd ${{ secrets.VPS_PATH }}
+            docker compose down --rmi all
+            docker compose up -d --pull always
