@@ -1,5 +1,6 @@
 import child_process from "node:child_process";
 import crypto from "node:crypto";
+import process from "node:process";
 import util, { TextEncoder } from "node:util";
 import createHttpError from "http-errors";
 
