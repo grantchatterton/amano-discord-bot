@@ -1,18 +1,17 @@
 import process from "node:process";
+import { Webhooks } from "@octokit/webhooks";
 import createHttpError from "http-errors";
-import { verifySignature } from "../util/util.js";
+
+const webhooks = new Webhooks({
+	secret: process.env.GITHUB_SECRET,
+});
 
 export default async function githubMiddleware(req, res, next) {
-	const secret = process.env.GITHUB_SECRET;
-	const header = req.headers["x-hub-signature-256"];
-	const payload = req.body;
-
-	if (!header) {
-		return next(createHttpError(401, "Unauthorized: X-Hub-Signature-256 header missing!"));
-	}
+	const signature = req.headers["x-hub-signature-256"];
+	const body = req.body;
 
 	try {
-		const result = await verifySignature(secret, header, payload);
+		const result = await webhooks.verify(body, signature);
 		if (!result) {
 			return next(createHttpError(401));
 		}
