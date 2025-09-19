@@ -1,7 +1,7 @@
 import process from "node:process";
 import { Sequelize } from "sequelize";
 
-export default (() => {
+function createSequelize() {
 	if (process.env.NODE_ENV === "development") {
 		return new Sequelize("sqlite::memory:");
 	}
@@ -11,4 +11,20 @@ export default (() => {
 		host: DB_HOST,
 		dialect: DB_DIALECT,
 	});
-})();
+}
+
+const sequelize = createSequelize();
+
+async function shutdown() {
+	try {
+		await sequelize.close();
+		console.log("Sequelize connection closed");
+	} catch (error) {
+		console.error(error);
+	}
+}
+
+process.on("SIGINT", shutdown);
+process.on("SIGTERM", shutdown);
+
+export default sequelize;
