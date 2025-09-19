@@ -5,6 +5,12 @@ on:
     workflows: ["Discord Deployment"]
     types:
       - completed
+  workflow_dispatch:
+    inputs:
+      branch_name:
+        description: "Branch to run workflow on"
+        required: true
+        default: "main"
 
 jobs:
   docker:
