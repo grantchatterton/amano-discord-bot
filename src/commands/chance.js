@@ -1,4 +1,4 @@
-import { ApplicationCommandOptionType, bold, channelLink, ChannelType } from "discord.js";
+import { ApplicationCommandOptionType, bold, channelLink, ChannelType, PermissionFlagsBits } from "discord.js";
 import { channelService } from "../services/channelService.js";
 
 /** @type {import('./index.js').Command} */
@@ -6,6 +6,7 @@ export default {
 	data: {
 		name: "chance",
 		description: "Set the chance of replying to a message containing a swear for a channel.",
+		default_member_permissions: PermissionFlagsBits.ManageChannels,
 		options: [
 			{
 				name: "channel",
