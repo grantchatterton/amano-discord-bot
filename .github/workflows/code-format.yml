@@ -3,6 +3,8 @@ name: Code Formatting
 on:
   push:
     branches: ["main"]
+    paths:
+      - "src/**"
 
 jobs:
   format:
