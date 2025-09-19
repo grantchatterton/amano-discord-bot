@@ -15,16 +15,7 @@ export const channelService = {
 		return channel;
 	},
 	async getChannel(channelId) {
-		if (channelCollection.has(channelId)) {
-			return channelCollection.get(channelId);
-		}
-
-		const channel = await Channel.findOne({ where: { channelId } });
-		if (channel) {
-			channelCollection.set(channelId, channel);
-		}
-
-		return channel;
+		return this.addChannel(channelId);
 	},
 	async getChannelReplyChance(channelId) {
 		const channel = await this.getChannel(channelId);
