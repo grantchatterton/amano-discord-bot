@@ -1,14 +1,9 @@
-import path from "node:path";
+import "./config.js";
 import process from "node:process";
 import { URL } from "node:url";
-import appRootPath from "app-root-path";
 import { Client, GatewayIntentBits, Partials } from "discord.js";
-import dotenv from "dotenv";
 import { loadCommands, loadEvents } from "./util/loaders.js";
 import { registerEvents } from "./util/registerEvents.js";
-
-// Initialize environment variables
-dotenv.config({ path: path.join(appRootPath.path, `.env.${process.env.NODE_ENV || "development"}`) });
 
 // Initialize the client
 const client = new Client({
