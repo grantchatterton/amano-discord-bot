@@ -1,5 +1,5 @@
 import { Events } from "discord.js";
-import sequelize from "../models/db.js";
+import Channel from "../models/channel.js";
 
 /** @type {import('./index.js').Event<Events.ClientReady>} */
 export default {
@@ -7,7 +7,7 @@ export default {
 	once: true,
 	async execute(client) {
 		// TODO: Modify to make safer for production
-		await sequelize.sync({ alter: true });
+		await Channel.sync({ alter: true });
 		console.log(`Ready! Logged in as ${client.user.tag}`);
 	},
 };
