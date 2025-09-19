@@ -1,4 +1,4 @@
-import { channelLink, Collection } from "discord.js";
+import { Collection } from "discord.js";
 import Channel from "../models/channel.js";
 
 const channelCollection = new Collection();
