@@ -1,6 +1,8 @@
-import { MESSAGE_REPLY_CHANCE, MESSAGE_REPLY_IMAGE } from '../config.js';
-import { AMANO_QUOTES } from '../quotes.js';
-import { SWEAR_PATTERNS } from '../swears.js';
+import { AttachmentBuilder } from "discord.js";
+import { MESSAGE_REPLY_IMAGE } from "../config.js";
+import { AMANO_QUOTES } from "../quotes.js";
+import { channelService } from "../services/channelService.js";
+import { SWEAR_PATTERNS } from "../swears.js";
 
 /**
  * Returns a random integer in the range [min, max].
@@ -44,20 +46,11 @@ export function hasSwear(message) {
 }
 
 /**
- * Returns whether we should reply to a message.
- *
- * @returns {boolean} True if we should reply, false otherwise.
- */
-export function shouldReplyToMessage() {
-	return getRandomInt(1, 100) <= MESSAGE_REPLY_CHANCE;
-}
-
-/**
- * Returns a Promise containing a random quote
+ * Returns a Promise containing a reply quote
  *
  * @returns {Promise<string>} Random quote.
  */
-export async function getRandomQuote() {
+export async function getReplyQuote() {
 	return AMANO_QUOTES[getRandomInt(0, AMANO_QUOTES.length - 1)];
 }
 
@@ -70,10 +63,36 @@ export async function getReplyImage() {
 	return MESSAGE_REPLY_IMAGE;
 }
 
+export async function getMessageReply(message) {
+	// Don't reply to bot messages
+	if (message.author.bot) {
+		return false;
+	}
+
+	// Fetch the replyChance for the channel the message was sent in
+	// We want to check if we should reply based on it
+	const replyChance = await channelService.getChannelReplyChance(message.channelId);
+	if (!(getRandomInt(1, 100) <= replyChance)) {
+		return false;
+	}
+
+	// Check if the message contains a swear (stop if it doesn't)
+	if (!hasSwear(message.content)) {
+		return false;
+	}
+
+	// Return an object representing a message reply
+	const [quote, image] = await Promise.all([getReplyQuote(), getReplyImage()]);
+	return {
+		content: quote,
+		files: [new AttachmentBuilder(image)],
+	};
+}
+
 export default {
 	getRandomInt,
 	hasSwear,
-	shouldReplyToMessage,
-	getRandomQuote,
+	getReplyQuote,
 	getReplyImage,
+	getMessageReply,
 };
