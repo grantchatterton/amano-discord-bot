@@ -33,10 +33,10 @@ export default {
 		const channelPermissions = channel.permissionsFor(member);
 		if (!channelPermissions.has(PermissionsBitField.Flags.ManageChannels)) {
 			return await interaction.reply({
-					content: "You don't have permission to configure that channel.",
-					ephemeral: true
+				content: "You don't have permission to configure that channel.",
+				ephemeral: true,
 			});
-  }
+		}
 
 		try {
 			await channelService.setChannelReplyChance(channel.id, chance);
