@@ -2,7 +2,7 @@ name: Docker CI/CD
 
 on:
   workflow_run:
-    workflows: ["Discord Command Deployment"]
+    workflows: ["Discord Deployment"]
     types:
       - completed
 

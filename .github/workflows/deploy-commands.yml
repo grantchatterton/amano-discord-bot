@@ -1,4 +1,4 @@
-name: Discord Command Deployment
+name: Discord Deployment
 
 on:
   push:
