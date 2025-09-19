@@ -1,4 +1,11 @@
-import { ApplicationCommandOptionType, bold, channelLink, ChannelType, PermissionFlagsBits } from "discord.js";
+import {
+	ApplicationCommandOptionType,
+	bold,
+	channelLink,
+	ChannelType,
+	PermissionFlagsBits,
+	PermissionsBitField,
+} from "discord.js";
 import { channelService } from "../services/channelService.js";
 
 /** @type {import('./index.js').Command} */
@@ -32,7 +39,7 @@ export default {
 		const member = interaction.member;
 		const channelPermissions = channel.permissionsFor(member);
 		if (!channelPermissions.has(PermissionsBitField.Flags.ManageChannels)) {
-			return await interaction.reply({
+			return interaction.reply({
 				content: "You don't have permission to configure that channel.",
 				ephemeral: true,
 			});
@@ -40,10 +47,10 @@ export default {
 
 		try {
 			await channelService.setChannelReplyChance(channel.id, chance);
-			await interaction.reply({ content: `Reply chance for ${channelLink(channel.id)} set to ${bold(chance)}.` });
+			return interaction.reply({ content: `Reply chance for ${channelLink(channel.id)} set to ${bold(chance)}.` });
 		} catch (error) {
 			console.error(error);
-			await interaction.reply({ content: "Failure updating reply chance!", ephemeral: true });
+			return interaction.reply({ content: "Failure updating reply chance!", ephemeral: true });
 		}
 	},
 };
