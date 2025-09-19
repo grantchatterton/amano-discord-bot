@@ -2,7 +2,7 @@ import process from "node:process";
 import { Sequelize } from "sequelize";
 
 function createSequelize() {
-	if (process.env.NODE_ENV === "development") {
+	if (process.env.NODE_ENV !== "production") {
 		return new Sequelize("sqlite::memory:");
 	}
 
