@@ -21,8 +21,6 @@ jobs:
           cache: "npm" # Optional: Cache npm dependencies for faster builds
       - name: Install dependencies
         run: npm install
-      - name: Format the code
-        run: npm run format
       - name: Run deploy
         env:
           DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}
