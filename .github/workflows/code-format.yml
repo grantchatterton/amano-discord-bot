@@ -28,10 +28,12 @@ jobs:
           node-version: "20" # Or your preferred Node.js version
 
       - name: Install dev dependencies
-        run: npm install --only=dev
+        run: npm install -D
 
-      - name: Format code with Prettier
-        run: npm run format
+      - name: Format code with Prettier & ESLint
+        run: |
+          npx prettier --write .
+          npx eslint --ext .js,.mjs,.cjs --fix --format=pretty src
 
       - name: Check for changes and commit if necessary
         id: git-check
