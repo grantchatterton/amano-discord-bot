@@ -1,5 +1,6 @@
-# Hidden files
+# Internal
 .env
+.env.*
 .eslintrc.json
 .gitignore
 .gitignore
