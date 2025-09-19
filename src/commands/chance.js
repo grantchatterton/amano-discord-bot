@@ -11,7 +11,7 @@ export default {
 				name: "channel",
 				description: "Text channel to set reply chance for.",
 				type: ApplicationCommandOptionType.Channel,
-				channel_types: ChannelType.GuildText,
+				channel_types: [ChannelType.GuildText],
 				required: true,
 			},
 			{
@@ -27,6 +27,7 @@ export default {
 	async execute(interaction) {
 		const channel = interaction.options.getChannel("channel");
 		const chance = interaction.options.getInteger("value");
+
 		try {
 			await channelService.setChannelReplyChance(channel.id, chance);
 			await interaction.reply({ content: `Reply chance for ${channelLink(channel.id)} set to ${bold(chance)}` });
