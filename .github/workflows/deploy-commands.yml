@@ -3,8 +3,6 @@ name: Discord Command Deployment
 on:
   push:
     branches: ["main"]
-    paths:
-      - "src/commands/**"
 
 jobs:
   build:
