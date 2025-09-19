@@ -1,9 +1,8 @@
 name: Code Formatting
 
 on:
-  pull_request:
-    branches:
-      - main # Or your default branch
+  push:
+    branches: ["main"]
 
 jobs:
   format:
