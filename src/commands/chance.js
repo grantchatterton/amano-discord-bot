@@ -30,7 +30,7 @@ export default {
 
 		try {
 			await channelService.setChannelReplyChance(channel.id, chance);
-			await interaction.reply({ content: `Reply chance for ${channelLink(channel.id)} set to ${bold(chance)}` });
+			await interaction.reply({ content: `Reply chance for ${channelLink(channel.id)} set to ${bold(chance)}.` });
 		} catch (error) {
 			console.error(error);
 			await interaction.reply({ content: "Failure updating reply chance!", ephemeral: true });
