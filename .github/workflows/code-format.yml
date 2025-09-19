@@ -5,6 +5,12 @@ on:
     branches: ["main"]
     paths:
       - "src/**"
+  workflow_dispatch:
+    inputs:
+      branch_name:
+        description: "Branch to run workflow on"
+        required: true
+        default: "main"
 
 jobs:
   format:
