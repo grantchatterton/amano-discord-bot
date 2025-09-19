@@ -27,13 +27,11 @@ jobs:
         with:
           node-version: "20" # Or your preferred Node.js version
 
-      - name: Install dev dependencies
-        run: npm install -D
+      - name: Install Prettier
+        run: npm install prettier
 
-      - name: Format code with Prettier & ESLint
-        run: |
-          npx prettier --write .
-          npx eslint --ext .js,.mjs,.cjs --fix --format=pretty src
+      - name: Format code with Prettier
+        run: npx prettier --write .
 
       - name: Check for changes and commit if necessary
         id: git-check
