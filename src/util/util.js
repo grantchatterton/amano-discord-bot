@@ -1,4 +1,4 @@
-import { AttachmentBuilder } from "discord.js";
+import { AttachmentBuilder, Message } from "discord.js";
 import { MESSAGE_REPLY_IMAGE } from "../config.js";
 import { AMANO_QUOTES } from "../quotes.js";
 import { channelService } from "../services/channelService.js";
@@ -46,7 +46,7 @@ export function hasSwear(message) {
 }
 
 /**
- * Returns a Promise containing a reply quote
+ * Returns a Promise containing a reply quote.
  *
  * @returns {Promise<string>} Random quote.
  */
@@ -63,6 +63,12 @@ export async function getReplyImage() {
 	return MESSAGE_REPLY_IMAGE;
 }
 
+/**
+ * Returns a Promise containing either a message reply or a false value.
+ *
+ * @param message Message object.
+ * @returns Message to reply with on success, false otherwise.
+ */
 export async function getMessageReply(message) {
 	// Don't reply to bot messages
 	if (message.author.bot) {
