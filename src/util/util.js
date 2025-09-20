@@ -1,4 +1,4 @@
-import { AttachmentBuilder, Message } from "discord.js";
+import { AttachmentBuilder } from "discord.js";
 import { MESSAGE_REPLY_IMAGE } from "../config.js";
 import { AMANO_QUOTES } from "../quotes.js";
 import { channelService } from "../services/channelService.js";
