@@ -3,8 +3,7 @@ name: Discord Command Deployment
 on:
   push:
     branches: ["main"]
-    paths:
-      - "src/commands/**"
+    paths: ["src/commands/**"]
   workflow_dispatch:
     inputs:
       branch_name:
