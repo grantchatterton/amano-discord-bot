@@ -68,7 +68,7 @@ export async function getMessageReply(message) {
 	if (message.author.bot) {
 		return false;
 	}
-	
+
 	// Check if the message contains a swear (stop if it doesn't)
 	if (!hasSwear(message.content)) {
 		return false;
