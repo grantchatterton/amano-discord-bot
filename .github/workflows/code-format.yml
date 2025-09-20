@@ -3,8 +3,7 @@ name: Code Formatting
 on:
   push:
     branches: ["main"]
-    paths:
-      - "src/**"
+    paths: ["src/**"]
   workflow_dispatch:
     inputs:
       branch_name:
