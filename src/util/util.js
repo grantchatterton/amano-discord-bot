@@ -68,16 +68,16 @@ export async function getMessageReply(message) {
 	if (message.author.bot) {
 		return false;
 	}
+	
+	// Check if the message contains a swear (stop if it doesn't)
+	if (!hasSwear(message.content)) {
+		return false;
+	}
 
 	// Fetch the replyChance for the channel the message was sent in
 	// We want to check if we should reply based on it
 	const replyChance = await channelService.getChannelReplyChance(message.channelId);
 	if (!(getRandomInt(1, 100) <= replyChance)) {
-		return false;
-	}
-
-	// Check if the message contains a swear (stop if it doesn't)
-	if (!hasSwear(message.content)) {
 		return false;
 	}
 
