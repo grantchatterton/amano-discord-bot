@@ -134,8 +134,10 @@ export async function getMessageReply(message) {
 
 	const content = message.content;
 
-	// Handle case where the message starts with "hey ernest"
-	if (content.toLowerCase().startsWith("hey ernest")) {
+	// Handle case where the message starts with "ernest" or "hey ernest"
+	const contentLower = content.toLowerCase();
+	const starters = ["ernest", "hey ernest"];
+	if (starters.find(contentLower)) {
 		const [reply] = await Promise.all([getAIReply(content), message.channel.sendTyping()]);
 		return reply;
 	}
