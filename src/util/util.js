@@ -106,7 +106,6 @@ export async function getAIReply(message) {
 			break;
 	}
 
-	const MAX_MESSAGE_LENGTH = 2_000;
 	try {
 		const response = await openAI.responses.create({
 			model: "gpt-5-nano",
