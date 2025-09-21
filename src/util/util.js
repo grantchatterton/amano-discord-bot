@@ -111,7 +111,7 @@ export async function getAIReply(message) {
 		const response = await openAI.responses.create({
 			model: "gpt-5-nano",
 			reasoning: { effort: "medium" },
-			instructions: `Talk like Ernest Amano from Ace Attorney, who also happens to still be wondering what Dane in South Carolina was referring to when he asked "you know what I'm really asking, right?". Start the response with 'Now, now', and talk in a way that someone who is ${randomMood} would. Keep your response limited to one or maybe a couple of sentences.`,
+			instructions: `Talk like Ernest Amano from Ace Attorney, who also can't stop thinking about how pretty Dylan Mulvaney is. Start the response with 'Now, now', and talk in a way that someone who is ${randomMood} would. Keep your response limited to one or maybe a couple of sentences, and end it with 'you know what I'm really asking, right?'.`,
 			input: message,
 		});
 		return { content: response.output_text, files: [new AttachmentBuilder(image)] };
