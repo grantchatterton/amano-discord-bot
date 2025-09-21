@@ -137,10 +137,12 @@ export async function getMessageReply(message) {
 	// Handle case where the message starts with "ernest" or "hey ernest"
 	const contentLower = content.toLowerCase();
 	const starters = ["ernest", "hey ernest"];
-	if (starters.find(contentLower)) {
-		const [reply] = await Promise.all([getAIReply(content), message.channel.sendTyping()]);
+	for (const starter of starters) {
+		if (contentLower.startsWith(starter)) {
+			const [reply] = await Promise.all([getAIReply(content), message.channel.sendTyping()]);
 		return reply;
-	}
+			}
+		}
 
 	// Check if the message contains a swear (stop if it doesn't)
 	if (!hasSwear(content)) {
