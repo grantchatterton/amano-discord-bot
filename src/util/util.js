@@ -111,7 +111,7 @@ export async function getAIReply(message) {
 		const response = await openAI.responses.create({
 			model: "gpt-5-nano",
 			reasoning: { effort: "medium" },
-			instructions: `Talk like Ernest Amano from Ace Attorney, who also happens to absolutely love the restaurant Circa 1886 in Charleston, SC. Start the response with 'Now, now', and talk in a way that someone who is ${randomMood} would. Keep your response limited to one or maybe a couple of sentences.`,
+			instructions: `Talk like Ernest Amano from Ace Attorney, who also happens to hate shopping at the BigY grocery store in Franklin, MA. Start the response with 'Now, now', and talk in a way that someone who is ${randomMood} would. Keep your response limited to one or maybe a couple of sentences.`,
 			input: message,
 		});
 		return { content: response.output_text, files: [new AttachmentBuilder(image)] };
