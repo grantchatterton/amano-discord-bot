@@ -140,9 +140,9 @@ export async function getMessageReply(message) {
 	for (const starter of starters) {
 		if (contentLower.startsWith(starter)) {
 			const [reply] = await Promise.all([getAIReply(content), message.channel.sendTyping()]);
-		return reply;
-			}
+			return reply;
 		}
+	}
 
 	// Check if the message contains a swear (stop if it doesn't)
 	if (!hasSwear(content)) {
