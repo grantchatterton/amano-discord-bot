@@ -1,29 +1,25 @@
-import { DataTypes } from "sequelize";
 import { MESSAGE_REPLY_CHANCE } from "../config.js";
-import sequelize from "./db.js";
 
-const Channel = sequelize.define("Channel", {
-	id: {
-		type: DataTypes.INTEGER,
-		primaryKey: true,
-		autoIncrement: true,
-	},
-	channelId: {
-		type: DataTypes.STRING,
-		unique: true,
-		allowNull: false,
-	},
-	replyChance: {
-		type: DataTypes.INTEGER,
-		validate: {
-			min: 0,
-			max: 100,
+export default (sequelize, DataTypes) => {
+	return sequelize.define("Channel", {
+		id: {
+			type: DataTypes.INTEGER,
+			primaryKey: true,
+			autoIncrement: true,
 		},
-		get() {
-			const rawValue = this.getDataValue("replyChance");
-			return rawValue ?? MESSAGE_REPLY_CHANCE;
+		channelId: {
+			type: DataTypes.STRING,
+			unique: true,
+			allowNull: false,
 		},
-	},
-});
-
-export default Channel;
+		replyChance: {
+			type: DataTypes.INTEGER,
+			defaultValue: MESSAGE_REPLY_CHANCE,
+			allowNull: false,
+			validate: {
+				min: 0,
+				max: 100,
+			},
+		},
+	});
+};

@@ -106,12 +106,11 @@ export async function getAIReply(message) {
 			break;
 	}
 
-	const MAX_MESSAGE_LENGTH = 2_000;
 	try {
 		const response = await openAI.responses.create({
 			model: "gpt-5-nano",
 			reasoning: { effort: "medium" },
-			instructions: `Talk like Ernest Amano from Ace Attorney. Start the response with 'Now, now', and talk in a way that someone who is ${randomMood} would. Keep your response limited to one or maybe a couple of sentences.`,
+			instructions: `Talk like Ernest Amano from Ace Attorney. Start the response with 'Now, now' or 'There, there, now', and talk in a way that someone who is ${randomMood} would. Keep your response limited to one or maybe a couple of sentences.`,
 			input: message,
 		});
 		return { content: response.output_text, files: [new AttachmentBuilder(image)] };

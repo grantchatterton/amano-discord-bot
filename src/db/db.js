@@ -14,7 +14,7 @@ function createSequelize() {
 	});
 }
 
-const sequelize = createSequelize();
+export const sequelize = createSequelize();
 
 async function shutdown() {
 	try {

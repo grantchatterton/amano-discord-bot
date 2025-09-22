@@ -1,5 +1,7 @@
 import { Collection } from "discord.js";
-import Channel from "../models/channel.js";
+import { sequelize } from "../db/db.js";
+
+const Channel = sequelize.model("Channel");
 
 const channelCollection = new Collection();
 
