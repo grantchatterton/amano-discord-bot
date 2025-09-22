@@ -127,11 +127,6 @@ export async function getAIReply(message) {
  * @returns Message to reply with on success, false otherwise.
  */
 export async function getMessageReply(message) {
-	// Don't reply to bot messages
-	if (message.author.bot) {
-		return false;
-	}
-
 	const content = message.content;
 
 	// Handle case where the message starts with "ernest" or "hey ernest"
