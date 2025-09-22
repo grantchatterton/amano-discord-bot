@@ -1,6 +1,7 @@
 import { Events } from "discord.js";
 import { getMessageReply } from "../util/util.js";
 
+/** @type {import('./index.js').Event<Events.MessageCreate>} */
 export default {
 	name: Events.MessageCreate,
 	async execute(message) {
