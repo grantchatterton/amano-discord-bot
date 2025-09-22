@@ -110,7 +110,7 @@ export async function getAIReply(message) {
 		const response = await openAI.responses.create({
 			model: "gpt-5-nano",
 			reasoning: { effort: "medium" },
-			instructions: `Talk like Ernest Amano from Ace Attorney. Start the response with 'Now, now' or 'There, there, now', and talk in a way that someone who is ${randomMood} would. Keep your response limited to one or maybe a couple of sentences.`,
+			instructions: `Talk like Ernest Amano from Ace Attorney. Start the response with either 'Now, now' or 'There, there, now', and talk in a way that someone who is ${randomMood} would. Keep your response limited to one or maybe a couple of sentences.`,
 			input: message,
 		});
 		return { content: response.output_text, files: [new AttachmentBuilder(image)] };
@@ -134,10 +134,14 @@ export async function getMessageReply(message) {
 
 	const content = message.content;
 
-	// Handle case where the message starts with "hey ernest"
-	if (content.toLowerCase().startsWith("hey ernest")) {
-		const [reply] = await Promise.all([getAIReply(content), message.channel.sendTyping()]);
-		return reply;
+	// Handle case where the message starts with "ernest" or "hey ernest"
+	const contentLower = content.toLowerCase();
+	const starters = ["ernest", "hey ernest"];
+	for (const starter of starters) {
+		if (contentLower.startsWith(starter)) {
+			const [reply] = await Promise.all([getAIReply(content), message.channel.sendTyping()]);
+			return reply;
+		}
 	}
 
 	// Check if the message contains a swear (stop if it doesn't)
