@@ -2,17 +2,12 @@ import "./config.js";
 import process from "node:process";
 import { URL } from "node:url";
 import { Client, GatewayIntentBits, Partials } from "discord.js";
-import { DataTypes } from "sequelize";
-import { sequelize } from "./db/db.js";
-import initChannel from "./models/channel.js";
+import { initDB } from "./db/dbInit.js";
 import { loadCommands, loadEvents } from "./util/loaders.js";
 import { registerEvents } from "./util/registerEvents.js";
 
-// Initialize the DB models
-initChannel(sequelize, DataTypes);
-
-// Sync the DB models
-await sequelize.sync({ force: process.env.NODE_ENV === "development" });
+// Initialize the DB
+await initDB();
 
 // Initialize the client
 const client = new Client({
