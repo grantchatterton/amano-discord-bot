@@ -3,7 +3,6 @@
 .env.*
 .eslintrc.json
 .gitignore
-.gitignore
 .misc
 .prettierrc.json
 .vscode
