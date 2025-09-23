@@ -25,8 +25,9 @@ async function getSummary(messages) {
 async function updateSummary(guildId, newMessages) {
 	if (newMessages.length >= MAX_LIMIT) {
 		const summary = await getSummary(newMessages);
-		await Message.upsert({ guildId, content: summary.content });
 		messageCollection.set(guildId, [summary]);
+				Message.upsert({ guildId, content: summary.content })
+					.catch(error => console.error("Error updating summary in DB: " + error));
 	} else {
 		messageCollection.set(guildId, newMessages);
 	}
