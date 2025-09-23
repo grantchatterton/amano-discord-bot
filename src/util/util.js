@@ -127,6 +127,13 @@ export async function getAIReply(message) {
 		const { mood, content } = JSON.parse(aiResponse.value.choices[0].message.content);
 		// console.log(`mood = ${mood}`);
 		// console.log(`content = ${content}`);
+		let newContent;
+		if (content === null) {
+			console.error(`Error: content === null!`);
+			newContent = await getReplyQuote(AMANO_QUOTES);
+		} else {
+			newContent = content;
+		}
 
 		let image;
 		switch (mood) {
@@ -163,7 +170,7 @@ export async function getAIReply(message) {
 			console.error(`Error checking user's status: ${userResponse.reason}`);
 		}
 
-		return { content, files: [new AttachmentBuilder(image)] };
+		return { content: newContent, files: [new AttachmentBuilder(image)] };
 	} catch (error) {
 		console.error(error);
 		return { content: "Now, now, something went wrong. Please try again later!" };
