@@ -31,8 +31,8 @@ export default {
 			}
 
 			user.trackMessages = status;
-
 			await user.save();
+
 			return interaction.reply({ content: `Message tracking ${bold(subUpper)}.`, ephemeral: true });
 		} catch (error) {
 			console.error(error);
