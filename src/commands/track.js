@@ -10,12 +10,12 @@ export default {
 			{
 				type: ApplicationCommandOptionType.Subcommand,
 				name: "on",
-				description: "Opt in to message tracking.",
+				description: "Opt-in to message tracking.",
 			},
 			{
 				type: ApplicationCommandOptionType.Subcommand,
 				name: "off",
-				description: "Opt out of message tracking.",
+				description: "Opt-out of message tracking.",
 			},
 		],
 	},
@@ -27,13 +27,13 @@ export default {
 			const status = sub === "on";
 			const subUpper = sub.toUpperCase();
 			if (user.trackMessages === status) {
-				return interaction.reply({ content: `Message tracking is already set to ${bold(subUpper)}.`, ephemeral: true });
+				return interaction.reply({ content: `Message tracking is already ${bold(subUpper)}.`, ephemeral: true });
 			}
 
 			user.trackMessages = status;
 
 			await user.save();
-			return interaction.reply({ content: `Message tracking set to ${bold(subUpper)}.` });
+			return interaction.reply({ content: `Message tracking ${bold(subUpper)}.`, ephemeral: true });
 		} catch (error) {
 			console.error(error);
 			return interaction.reply({ content: "Something went wrong, please try again!", ephemeral: true });
