@@ -1,4 +1,4 @@
-import { AttachmentBuilder } from "discord.js";
+import { AttachmentBuilder, Message } from "discord.js";
 import AmanoImages from "../images.js";
 import { openAI } from "../openai/openai.js";
 import { AMANO_QUOTES } from "../quotes.js";
@@ -76,6 +76,16 @@ export async function getReplyImage() {
 }
 
 /**
+ * Returns a generic message reply.
+ *
+ * @returns {any} Message reply object.
+ */
+export async function getGenericMessageReply() {
+	const [quote, image] = await Promise.all([getReplyQuote(), getReplyImage()]);
+	return { content: quote, files: [new AttachmentBuilder(image)] };
+}
+
+/**
  * Returns a Promise containing an AI generated reply.
  *
  * @returns {Promise<string>} Reply content.
@@ -127,12 +137,23 @@ export async function getAIReply(message) {
 		const { mood, content } = JSON.parse(aiResponse.value.choices[0].message.content);
 		// console.log(`mood = ${mood}`);
 		// console.log(`content = ${content}`);
-		let newContent;
+
 		if (content === null) {
 			console.error(`Error: content === null!`);
-			newContent = await getReplyQuote(AMANO_QUOTES);
+			return getGenericMessageReply();
+		}
+
+		if (userResponse.status === "fulfilled") {
+			const user = userResponse.value;
+			if (user?.trackMessages) {
+				try {
+					await messageService.addMessages(message.guildId, userMessage, { role: "assistant", content });
+				} catch (error) {
+					console.error("Error saving messages: " + error);
+				}
+			}
 		} else {
-			newContent = content;
+			console.error(`Error checking user's status: ${userResponse.reason}`);
 		}
 
 		let image;
@@ -157,20 +178,7 @@ export async function getAIReply(message) {
 				break;
 		}
 
-		if (userResponse.status === "fulfilled") {
-			const user = userResponse.value;
-			if (user && user.trackMessages) {
-				try {
-					await messageService.addMessages(message.guildId, userMessage, { role: "assistant", content });
-				} catch (error) {
-					console.error("Error saving messages: " + error);
-				}
-			}
-		} else {
-			console.error(`Error checking user's status: ${userResponse.reason}`);
-		}
-
-		return { content: newContent, files: [new AttachmentBuilder(image)] };
+		return { content, files: [new AttachmentBuilder(image)] };
 	} catch (error) {
 		console.error(error);
 		return { content: "Now, now, something went wrong. Please try again later!" };
@@ -205,8 +213,17 @@ export async function getMessageReply(message) {
 	}
 
 	// Return an object representing a message reply
-	const [quote, image] = await Promise.all([getReplyQuote(), getReplyImage()]);
-	return { content: quote, files: [new AttachmentBuilder(image)] };
+	message.channel.sendTyping();
+	return getGenericMessageReply();
 }
 
-export default { getRandomInt, hasSwear, getRandomElement, getReplyQuote, getReplyImage, getAIReply, getMessageReply };
+export default {
+	getRandomInt,
+	hasSwear,
+	getRandomElement,
+	getReplyQuote,
+	getReplyImage,
+	getGenericMessageReply,
+	getAIReply,
+	getMessageReply,
+};
