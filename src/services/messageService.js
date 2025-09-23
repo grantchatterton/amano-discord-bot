@@ -39,6 +39,7 @@ export const messageService = {
 			const guildMessage = await Message.findOne({ where: { guildId } });
 			const guildMessages = guildMessage ? [{ role: "system", content: guildMessage.get("content") }] : [];
 			messageCollection.set(guildId, guildMessages);
+			return [...guildMessages];
 		}
 
 		const messages = messageCollection.get(guildId);
