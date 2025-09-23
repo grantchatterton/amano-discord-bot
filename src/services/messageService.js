@@ -6,7 +6,7 @@ const Message = sequelize.model("Message");
 
 const messageCollection = new Collection();
 
-const MAX_LIMIT = 50;
+const MAX_LIMIT = 20;
 
 async function getSummary(messages) {
 	const response = await openAI.chat.completions.create({
@@ -14,7 +14,7 @@ async function getSummary(messages) {
 		messages: [
 			{
 				role: "system",
-				content: "Create a concise summary of the message history.",
+				content: "Write a concise summary of the message history so that you can remember your state.",
 			},
 			...messages,
 		],
@@ -26,9 +26,7 @@ async function updateSummary(guildId, newMessages) {
 	if (newMessages.length >= MAX_LIMIT) {
 		const summary = await getSummary(newMessages);
 		messageCollection.set(guildId, [summary]);
-		Message.upsert({ guildId, content: summary.content }).catch((error) =>
-			console.error("Error updating summary in DB: " + error),
-		);
+		await Message.upsert({ guildId, content: summary.content });
 	} else {
 		messageCollection.set(guildId, newMessages);
 	}
