@@ -154,10 +154,9 @@ export async function getAIReply(message) {
 			const user = userResponse.value;
 			if (user && user.trackMessages) {
 				try {
-				await messageService
-					.addMessages(message.guildId, userMessage, { role: "assistant", content })
+					await messageService.addMessages(message.guildId, userMessage, { role: "assistant", content });
 				} catch (error) {
-				console.error("Error saving messages: " + error);
+					console.error("Error saving messages: " + error);
 				}
 			}
 		} else {
