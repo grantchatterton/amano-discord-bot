@@ -153,10 +153,12 @@ export async function getAIReply(message) {
 		if (userResponse.status === "fulfilled") {
 			const user = userResponse.value;
 			if (user && user.trackMessages) {
-				messageService
+				try {
+				await messageService
 					.addMessages(message.guildId, userMessage, { role: "assistant", content })
-					// eslint-disable-next-line promise/prefer-await-to-then, promise/prefer-await-to-callbacks
-					.catch((error) => console.error(`Error saving messages: ${error}`));
+				} catch (error) {
+				console.error("Error saving messages: " + error);
+				}
 			}
 		} else {
 			console.error(`Error checking user's status: ${userResponse.reason}`);
