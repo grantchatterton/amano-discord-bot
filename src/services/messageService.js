@@ -6,7 +6,7 @@ const Message = sequelize.model("Message");
 
 const messageCollection = new Collection();
 
-const MAX_LIMIT = 10;
+const MAX_LIMIT = 20;
 
 async function getSummary(messages) {
 	const response = await openAI.chat.completions.create({
