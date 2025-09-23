@@ -6,16 +6,16 @@ const Message = sequelize.model("Message");
 
 const messageCollection = new Collection();
 
-const MAX_LIMIT = 20;
+const MAX_LIMIT = 50;
 
 async function getSummary(messages) {
 	const response = await openAI.chat.completions.create({
-		model: "gpt-5-nano",
+		model: "gpt-5",
 		messages: [
 			{
 				role: "system",
 				content:
-					"Create a concise summary given the message history. Make sure it can fit within a TEXT column of a SQL database.",
+					"Create a concise summary of the message history.",
 			},
 			...messages,
 		],
