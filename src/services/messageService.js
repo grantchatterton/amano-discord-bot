@@ -14,8 +14,7 @@ async function getSummary(messages) {
 		messages: [
 			{
 				role: "system",
-				content:
-					"Create a concise summary of the message history.",
+				content: "Create a concise summary of the message history.",
 			},
 			...messages,
 		],
