@@ -11,6 +11,7 @@
 		"deploy": "node --require dotenv/config src/util/deploy.js"
 	},
 	"dependencies": {
+		"@datastructures-js/deque": "^1.0.8",
 		"@discordjs/core": "^1.2.0",
 		"app-root-path": "^3.1.0",
 		"discord.js": "^14.16.0",
