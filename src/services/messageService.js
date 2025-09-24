@@ -18,7 +18,7 @@ async function getSummary(messages) {
 			{
 				role: "system",
 				content:
-					"Write a detailed summary of the chat history. Make sure to note important things such as if the user instructed you to act or respond a certain way.",
+					"Write a detailed summary of the chat history. Make sure to note important things such as if you were instructed to act or respond a certain way.",
 			},
 			...messages,
 		],
