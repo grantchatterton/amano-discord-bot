@@ -1,7 +1,7 @@
 import "./config.js";
 import process from "node:process";
 import { URL } from "node:url";
-import { bold, Client, EmbedBuilder, GatewayIntentBits, Partials, WebhookClient } from "discord.js";
+import { quote, bold, Client, EmbedBuilder, GatewayIntentBits, Partials, WebhookClient, codeBlock } from "discord.js";
 import { initDB } from "./db/dbInit.js";
 import { loadCommands, loadEvents } from "./util/loaders.js";
 import { registerEvents } from "./util/registerEvents.js";
@@ -53,7 +53,7 @@ if (ERROR_WEBHOOK_URL) {
 		try {
 			const webhookClient = new WebhookClient({ url: ERROR_WEBHOOK_URL });
 			await webhookClient.send({
-				content: `${bold("Error Detected")}\n\`\`\`${errorMessage}\`\`\``,
+				content: `${bold("Error Detected")}\n${codeBlock(errorMessage)}`,
 				username: process.env.ERROR_WEBHOOK_USERNAME || "Ernest Amano (Error Reporter)",
 				avatarURL: process.env.ERROR_WEBHOOK_AVATAR || "",
 			});
@@ -76,10 +76,10 @@ if (ERROR_WEBHOOK_URL) {
 	});
 }
 
-// if (process.env.NODE_ENV === "development") {
-// 	// Test the custom error handler
-// 	console.error("Test Message");
-// }
+if (process.env.NODE_ENV === "development") {
+	// Test the custom error handler
+	console.error("Test Message");
+}
 
 // Terminate peacefully when "SIGINT" or "SIGTERM" received
 async function shutdown() {
