@@ -50,7 +50,7 @@ async function saveSummary(guildId, newMessages) {
 		try {
 			const summary = await getSummary(newMessages);
 			messageCollection.set(guildId, [summary]);
-			console.log(`summary = ${summary}`);
+			// console.log(`summary = ${summary}`);
 
 			try {
 				await Message.upsert({ guildId, content: summary.content });
