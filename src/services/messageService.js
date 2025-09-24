@@ -17,7 +17,8 @@ async function getSummary(messages) {
 		messages: [
 			{
 				role: "system",
-				content: "Write a detailed summary of the conversation. Make sure it's written in a way such that you could provide it to a virtual assistant to pick up where they left off with the user.",
+				content:
+					"Write a detailed summary of the conversation. Make sure it's written in a way such that you could provide it to a virtual assistant to pick up where they left off with the user.",
 			},
 			...messages,
 		],
