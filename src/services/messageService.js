@@ -4,7 +4,16 @@ import { sequelize } from "../db/db.js";
 import { openAI } from "../openai/openai.js";
 import { Mutex } from "../util/mutex.js";
 
-const MAX_MESSAGE_LIMIT = process.env.MAX_MESSAGE_LIMIT ?? 20;
+const DEFAULT_MAX_MESSAGE_LIMIT = 20;
+
+let MAX_MESSAGE_LIMIT;
+const parsedMaxMessageLimit = Number.parseInt(process.env.MAX_MESSAGE_LIMIT, 10);
+if (Number.isNaN(parsedMaxMessageLimit)) {
+	console.log(`Failure parsing process.env.MAX_MESSAGE_LIMIT! Defaulting to ${DEFAULT_MAX_MESSAGE_LIMIT}.`);
+	MAX_MESSAGE_LIMIT = DEFAULT_MAX_MESSAGE_LIMIT;
+} else {
+	MAX_MESSAGE_LIMIT = parsedMaxMessageLimit;
+}
 
 const Message = sequelize.model("Message");
 
