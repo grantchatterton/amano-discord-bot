@@ -110,7 +110,7 @@ async function saveSummary(guildId, messages) {
 			const newMessageData = {
 				messages: [],
 				summary: summary.content,
-				mimic: summary.mimic || null,
+				mimic: summary.mimic,
 			};
 
 			messageCollection.set(guildId, newMessageData);
