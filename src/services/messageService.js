@@ -98,7 +98,7 @@ async function getMessagesUtil(guildId) {
 async function saveSummary(guildId, messages, force = false) {
 	const messageData = await getMessageData(guildId);
 	const newMessages = [...messageData.messages, ...messages];
-	if (newMessages.length >= MAX_MESSAGE_LIMIT || force) {
+	if (newMessages.length > 0 && (newMessages.length >= MAX_MESSAGE_LIMIT || force)) {
 		try {
 			const summaryMessages = messageData.summary
 				? [{ role: "system", content: messageData.summary }, ...newMessages]
@@ -152,11 +152,11 @@ async function saveSummary(guildId, messages, force = false) {
 addShutdownListener(async () => {
 	console.log("Saving summaries...");
 
-	for (const guildId of messageCollection.keys()) {
-		// Attempt to save a summary for each of the guilds in the collection
-		// eslint-disable-next-line promise/prefer-await-to-then, promise/prefer-await-to-callbacks
-		await saveSummary(guildId, [], true);
-	}
+	await Promise.allSettled(
+		Array.from(messageCollection.keys()).map(async (guildId) => {
+			await saveSummary(guildId, [], true);
+		}),
+	);
 });
 
 export const messageService = {
