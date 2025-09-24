@@ -17,8 +17,7 @@ async function getSummary(messages) {
 		messages: [
 			{
 				role: "system",
-				content:
-					"Write a detailed summary of the chat history.",
+				content: "Write a detailed summary of the chat history.",
 			},
 			...messages,
 		],
