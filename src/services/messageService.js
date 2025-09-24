@@ -7,7 +7,7 @@ const Message = sequelize.model("Message");
 
 const messageCollection = new Collection();
 
-const MAX_LIMIT = 20;
+const MAX_LIMIT = 40;
 
 const mutex = new Mutex();
 
