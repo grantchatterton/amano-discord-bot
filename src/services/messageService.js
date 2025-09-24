@@ -1,19 +1,39 @@
+import process from "node:process";
 import { Collection } from "discord.js";
 import { sequelize } from "../db/db.js";
 import { openAI } from "../openai/openai.js";
 import { Mutex } from "../util/mutex.js";
 
+const MAX_MESSAGE_LIMIT = process.env.MAX_MESSAGE_LIMIT ?? 20;
+
 const Message = sequelize.model("Message");
 
 const messageCollection = new Collection();
-
-const MAX_LIMIT = 20;
 
 const mutex = new Mutex();
 
 async function getSummary(messages) {
 	const response = await openAI.chat.completions.create({
 		model: "gpt-3.5-turbo",
+		response_format: {
+			type: "json_schema",
+			json_schema: {
+				name: "data",
+				schema: {
+					type: "object",
+					properties: {
+						mood: {
+							type: "string",
+							description: "The emotional state determined from the chat history.",
+						},
+						content: {
+							type: "string",
+							description: "The content of the response you provide.",
+						},
+					},
+				},
+			},
+		},
 		messages: [
 			{
 				role: "system",
@@ -45,7 +65,7 @@ async function getMessagesUtil(guildId) {
 }
 
 async function saveSummary(guildId, newMessages) {
-	if (newMessages.length >= MAX_LIMIT) {
+	if (newMessages.length >= MAX_MESSAGE_LIMIT) {
 		try {
 			const summary = await getSummary(newMessages);
 			messageCollection.set(guildId, [summary]);
