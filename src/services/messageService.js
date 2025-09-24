@@ -49,7 +49,8 @@ async function saveSummary(guildId, newMessages) {
 	if (newMessages.length >= MAX_LIMIT) {
 		try {
 			const summary = await getSummary(newMessages);
-			messageCollection.set([summary]);
+			messageCollection.set(guildId, [summary]);
+			console.log(`summary = ${summary}`);
 
 			try {
 				await Message.upsert({ guildId, content: summary.content });
