@@ -97,7 +97,7 @@ export async function getAIReply(message) {
 
 		const [aiResponse, userResponse] = await Promise.allSettled([
 			openAI.chat.completions.create({
-				model: "gpt-5-nano",
+				model: "gpt-5-mini",
 				response_format: {
 					type: "json_schema",
 					json_schema: {
