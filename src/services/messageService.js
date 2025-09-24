@@ -1,6 +1,6 @@
 import process from "node:process";
 import { Collection } from "discord.js";
-import { sequelize } from "../db/db.js";
+import { sequelize, addShutdownListener } from "../db/db.js";
 import { openAI } from "../openai/openai.js";
 import { Mutex } from "../util/mutex.js";
 
@@ -95,10 +95,10 @@ async function getMessagesUtil(guildId) {
 	return [...utilMessages, ...messageData.messages];
 }
 
-async function saveSummary(guildId, messages) {
+async function saveSummary(guildId, messages, force = false) {
 	const messageData = await getMessageData(guildId);
 	const newMessages = [...messageData.messages, ...messages];
-	if (newMessages.length >= MAX_MESSAGE_LIMIT) {
+	if (newMessages.length >= MAX_MESSAGE_LIMIT || force) {
 		try {
 			const summaryMessages = messageData.summary
 				? [{ role: "system", content: messageData.summary }, ...newMessages]
@@ -148,6 +148,16 @@ async function saveSummary(guildId, messages) {
 		});
 	}
 }
+
+addShutdownListener(async () => {
+	console.log("Saving summaries...");
+
+	for (const guildId of messageCollection.keys()) {
+		// Attempt to save a summary for each of the guilds in the collection
+		// eslint-disable-next-line promise/prefer-await-to-then, promise/prefer-await-to-callbacks
+		await saveSummary(guildId, [], true);
+	}
+});
 
 export const messageService = {
 	async getMessages(guildId) {

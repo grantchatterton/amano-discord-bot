@@ -16,8 +16,18 @@ function createSequelize() {
 
 export const sequelize = createSequelize();
 
+const shutdownListeners = [];
+
+export function addShutdownListener(listener) {
+	shutdownListeners.push(() => Promise.resolve(listener()));
+}
+
 async function shutdown() {
 	try {
+		for (const listener of shutdownListeners) {
+			await listener();
+		}
+
 		await sequelize.close();
 		console.log("Sequelize connection closed");
 	} catch (error) {
