@@ -85,7 +85,7 @@ if (process.env.NODE_ENV === "development") {
 async function shutdown() {
 	try {
 		await client.destroy();
-		process.exit(0);
+		console.log(`Client successfully destroyed!`);
 	} catch (error) {
 		console.error(error);
 		process.exit(1);
