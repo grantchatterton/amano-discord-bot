@@ -116,10 +116,14 @@ async function saveSummary(guildId, messages) {
 			messageCollection.set(guildId, newMessageData);
 
 			try {
-				const [guildMessage] = await Message.findOrBuild({
+				const [guildMessage, created] = await Message.findOrBuild({
 					where: { guildId },
 					defaults: { content: summary.content },
 				});
+
+				if (!created) {
+					guildMessage.set("content", summary.content);
+				}
 
 				if (summary.mimic) {
 					guildMessage.set("mimic", summary.mimic);
