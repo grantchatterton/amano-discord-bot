@@ -58,8 +58,6 @@ async function getMessageData(guildId) {
 	if (!messageCollection.has(guildId)) {
 		const messageDataToCreate = {
 			messages: [],
-			summary: null,
-			mimic: null,
 		};
 
 		try {
