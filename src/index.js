@@ -30,17 +30,6 @@ registerEvents(commands, events, client);
 // Login to the client
 void client.login(process.env.DISCORD_TOKEN);
 
-// Terminate peacefully when "SIGINT" or "SIGTERM" received
-async function shutdown() {
-	try {
-		await client.destroy();
-		process.exit(0);
-	} catch (error) {
-		console.error(error);
-		process.exit(1);
-	}
-}
-
 // Implement a custom error handler if an error webhook URL is loaded
 const { ERROR_WEBHOOK_URL } = process.env;
 if (ERROR_WEBHOOK_URL) {
@@ -90,6 +79,17 @@ if (ERROR_WEBHOOK_URL) {
 if (process.env.NODE_ENV === "development") {
 	// Test the custom error handler
 	console.error("Test Message");
+}
+
+// Terminate peacefully when "SIGINT" or "SIGTERM" received
+async function shutdown() {
+	try {
+		await client.destroy();
+		process.exit(0);
+	} catch (error) {
+		console.error(error);
+		process.exit(1);
+	}
 }
 
 process.on("SIGINT", shutdown);
