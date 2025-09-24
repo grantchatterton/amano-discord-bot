@@ -7,20 +7,13 @@ const channelCollection = new Collection();
 
 export const channelService = {
 	async getChannel(channelId) {
-		if (channelCollection.has(channelId)) {
-			return channelCollection.get(channelId);
-		}
-
-		const channel = await Channel.findOne({ where: { channelId } });
-		if (channel) {
+		if (!channelCollection.has(channelId)) {
+			const [channel] = await Channel.findOrBuild({ where: { channelId } });
 			channelCollection.set(channelId, channel);
 			return channel;
 		}
 
-		// Do this so we don't have to store in DB until we manually save it
-		const newChannel = Channel.build({ channelId });
-		channelCollection.set(channelId, newChannel);
-		return newChannel;
+		return channelCollection.get(channelId);
 	},
 	async getChannelReplyChance(channelId) {
 		const channel = await this.getChannel(channelId);
