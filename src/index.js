@@ -34,7 +34,7 @@ void client.login(process.env.DISCORD_TOKEN);
 const { ERROR_WEBHOOK_URL } = process.env;
 if (ERROR_WEBHOOK_URL) {
 	const oldConsoleError = console.error;
-	console.error = (...args) => {
+	console.error = async (...args) => {
 		// Log to the original console.error
 		oldConsoleError.apply(this, args);
 
@@ -52,7 +52,7 @@ if (ERROR_WEBHOOK_URL) {
 		// Attempt to send it to the webhook
 		try {
 			const webhookClient = new WebhookClient({ url: ERROR_WEBHOOK_URL });
-			webhookClient.send({
+			await webhookClient.send({
 				content: `${bold("Error Detected")}\n\`\`\`${errorMessage}\`\`\``,
 				username: process.env.ERROR_WEBHOOK_USERNAME || "Ernest Amano (Error Reporter)",
 				avatarURL: process.env.ERROR_WEBHOOK_AVATAR || "",
