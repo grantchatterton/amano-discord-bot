@@ -31,13 +31,13 @@ async function getSummary(messages) {
 				schema: {
 					type: "object",
 					properties: {
-						mood: {
-							type: "string",
-							description: "The emotional state determined from the chat history.",
-						},
 						content: {
 							type: "string",
-							description: "The content of the response you provide.",
+							description: "The content of the summary.",
+						},
+						mimic: {
+							type: "string",
+							description: "The way the user may have instructed you to talk (if applicable).",
 						},
 					},
 				},
@@ -46,12 +46,12 @@ async function getSummary(messages) {
 		messages: [
 			{
 				role: "system",
-				content: "Write a detailed summary of the conversation.",
+				content: "You are a helpful assistant who summarizes a message history and responds in JSON format.",
 			},
 			...messages,
 		],
 	});
-	return { role: "system", content: response.choices[0].message.content };
+	return JSON.parse(response.choices[0].message.content);
 }
 
 async function getMessagesUtil(guildId) {
