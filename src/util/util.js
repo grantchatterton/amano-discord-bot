@@ -146,11 +146,17 @@ export async function getAIReply(message) {
 		if (userResponse.status === "fulfilled") {
 			const user = userResponse.value;
 			if (user?.trackMessages) {
-				try {
-					await messageService.addMessages(message.guildId, userMessage, { role: "assistant", content });
-				} catch (error) {
-					console.error("Error saving messages: " + error);
-				}
+				// try {
+				// 	await messageService.addMessages(message.guildId, userMessage, { role: "assistant", content });
+				// } catch (error) {
+				// 	console.error("Error saving messages: " + error);
+				// }
+
+				// We want to "fire and forget" this to prevent the app from slowing down it's response
+				messageService
+					.addMessages(message.guildId, userMessage, { role: "assistant", content })
+					// eslint-disable-next-line promise/prefer-await-to-then, promise/prefer-await-to-callbacks
+					.catch((error) => console.error(`Error adding messages: ${error}`));
 			}
 		} else {
 			console.error(`Error checking user's status: ${userResponse.reason}`);
