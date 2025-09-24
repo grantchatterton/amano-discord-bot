@@ -64,22 +64,22 @@ if (ERROR_WEBHOOK_URL) {
 	};
 
 	// Define custom handler for uncaught exceptions
-	process.on("uncaughtException", (err) => {
-		console.error(err);
+	process.on("uncaughtException", (error) => {
+		console.error(error);
 		process.exit(1);
 	});
 
 	// Define custom handler for uncaught promise rejections
-	process.on("unhandledRejection", (err) => {
-		console.error(err);
+	process.on("unhandledRejection", (error) => {
+		console.error(error);
 		process.exit(1);
 	});
 }
 
-if (process.env.NODE_ENV === "development") {
-	// Test the custom error handler
-	console.error("Test Message");
-}
+// if (process.env.NODE_ENV === "development") {
+// 	// Test the custom error handler
+// 	console.error("Test Message");
+// }
 
 // Terminate peacefully when "SIGINT" or "SIGTERM" received
 async function shutdown() {
