@@ -7,13 +7,13 @@ const Message = sequelize.model("Message");
 
 const messageCollection = new Collection();
 
-const MAX_LIMIT = 40;
+const MAX_LIMIT = 20;
 
 const mutex = new Mutex();
 
 async function getSummary(messages) {
 	const response = await openAI.chat.completions.create({
-		model: "gpt-5-nano",
+		model: "gpt-4",
 		messages: [
 			{
 				role: "system",
