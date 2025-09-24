@@ -13,7 +13,7 @@ const mutex = new Mutex();
 
 async function getSummary(messages) {
 	const response = await openAI.chat.completions.create({
-		model: "gpt-5",
+		model: "gpt-5-nano",
 		messages: [
 			{
 				role: "system",
