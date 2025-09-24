@@ -88,7 +88,7 @@ async function getMessagesUtil(guildId) {
 	if (messageData.mimic) {
 		utilMessages.push({
 			role: "system",
-			content: `Talk like you are ${messageData.mimic}. If you have been told to stop talking like something, follow their demand, and talk how you normally would.`,
+			content: `Talk like you are ${messageData.mimic}. If you have been told to talk like something else by the user, follow their demands.`,
 		});
 	}
 
