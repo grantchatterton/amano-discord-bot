@@ -6,6 +6,7 @@
 .misc
 .prettierrc.json
 .vscode
+README.md
 
 # Directories
 .github
