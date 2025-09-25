@@ -8,5 +8,7 @@
 .vscode
 
 # Directories
+.github
+.vscode
 node_modules
 secrets
