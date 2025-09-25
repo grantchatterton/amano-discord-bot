@@ -1,3 +1,4 @@
+import { setTimeout } from "node:timers";
 import {
 	ApplicationCommandOptionType,
 	bold,
@@ -47,14 +48,14 @@ export default {
 			});
 		}
 
+		await interaction.deferReply();
+
 		try {
 			await channelService.setChannelReplyChance(channel.id, chance);
-			return interaction.reply({
-				content: `Reply chance for ${channelLink(channel.id)} set to ${bold(chance + "%")}.`,
-			});
+			return interaction.editReply(`Reply chance for ${channelLink(channel.id)} set to ${bold(chance + "%")}.`);
 		} catch (error) {
 			console.error(error);
-			return interaction.reply({ content: "Failure updating reply chance!", ephemeral: true });
+			return interaction.editReply(`Something went wrong while attempting to update the reply chance.`);
 		}
 	},
 };
