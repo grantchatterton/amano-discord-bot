@@ -43,5 +43,5 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             cd ${{ secrets.VPS_PATH }}
-            docker compose -f compose.yml down --rmi all
-            docker compose -f compose.yml up -d --pull always
+            docker compose -f compose.yml -p amano-bot down --rmi all
+            docker compose -f compose.yml -p amano-bot up -d --pull always
