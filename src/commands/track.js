@@ -22,21 +22,23 @@ export default {
 	async execute(interaction) {
 		const sub = interaction.options.getSubcommand();
 
+		await interaction.deferReply({ ephemeral: true });
+
 		try {
 			const user = await userService.getUser(interaction.user.id);
 			const status = sub === "on";
 			const subUpper = sub.toUpperCase();
 			if (user.trackMessages === status) {
-				return interaction.reply({ content: `Message tracking is already ${bold(subUpper)}.`, ephemeral: true });
+				return interaction.editReply(`Message tracking is already ${bold(subUpper)}.`);
 			}
 
 			user.trackMessages = status;
 			await user.save();
 
-			return interaction.reply({ content: `Message tracking ${bold(subUpper)}.`, ephemeral: true });
+			return interaction.editReply(`Message tracking ${bold(subUpper)}.`);
 		} catch (error) {
 			console.error(error);
-			return interaction.reply({ content: "Something went wrong, please try again!", ephemeral: true });
+			return interaction.editReply("Something went wrong while trying to update your message tracking status.");
 		}
 	},
 };
