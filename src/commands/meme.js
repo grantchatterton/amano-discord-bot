@@ -4,7 +4,7 @@ import axios from "axios";
 export default {
 	data: {
 		name: "meme",
-		description: "Fetch a random meme!",
+		description: "Send a random meme!",
 	},
 	async execute(interaction) {
 		await interaction.deferReply();
