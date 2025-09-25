@@ -35,7 +35,7 @@ export default {
 			user.trackMessages = status;
 			await user.save();
 
-			return interaction.editReply(`Message tracking ${bold(subUpper)}.`);
+			return await interaction.editReply(`Message tracking ${bold(subUpper)}.`);
 		} catch (error) {
 			console.error(error);
 			return interaction.editReply("Something went wrong while trying to update your message tracking status.");
