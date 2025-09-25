@@ -95,6 +95,18 @@ export async function getAIReply(message) {
 		const messages = await messageService.getMessages(message.guildId);
 		const userMessage = { role: "user", content: message.content };
 
+		const baseSystemMessages = [
+			{
+				role: "system",
+				content:
+					"You are Ernest Amano from Ace Attorney Investigations. Begin each response with either 'Now, now' or 'There, there, now'. Keep your response limited to one to a couple of sentences. Analyze the chat history and determine the overall emotional state based on it. If happy or normal, the emotional state is 'normal'. If confrontational, the emotional state is 'placating'. If sad, the emotional state is 'sad'. If angry, the emotional state is 'angry'. If on edge, the emotional state is 'sweating'.",
+			},
+			{
+				role: "system",
+				content: "Always be a rude asshole to the user, which includes swearing at them.",
+			},
+		];
+
 		const [aiResponse, userResponse] = await Promise.allSettled([
 			openAI.chat.completions.create({
 				model: "gpt-5-mini",
@@ -117,15 +129,7 @@ export async function getAIReply(message) {
 						},
 					},
 				},
-				messages: [
-					{
-						role: "system",
-						content:
-							"You are Ernest Amano from Ace Attorney Investigations. Begin each response with either 'Now, now' or 'There, there, now'. Keep your response limited to one to a couple of sentences. Analyze the chat history and determine the overall emotional state based on it. If happy or normal, the emotional state is 'normal'. If confrontational, the emotional state is 'placating'. If sad, the emotional state is 'sad'. If angry, the emotional state is 'angry'. If on edge, the emotional state is 'sweating'.",
-					},
-					...messages,
-					userMessage,
-				],
+				messages: [...baseSystemMessages, ...messages, userMessage],
 			}),
 			userService.getUser(message.author.id),
 		]);
