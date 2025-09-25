@@ -91,9 +91,12 @@ async function getMessagesUtil(guildId) {
 			content: `Talk like you are ${messageData.mimic}.`,
 		});
 	}
-	
-	utilMessages.push({ role: "system", content: "If you have been told to talk a different way by the user, obey their instructions." })
-	
+
+	utilMessages.push({
+		role: "system",
+		content: "If you have been told to talk a different way by the user, obey their instructions.",
+	});
+
 	return [...utilMessages, ...messageData.messages];
 }
 
