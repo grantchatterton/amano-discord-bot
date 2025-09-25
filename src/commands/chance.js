@@ -52,7 +52,7 @@ export default {
 
 		try {
 			await channelService.setChannelReplyChance(channel.id, chance);
-			return interaction.editReply(`Reply chance for ${channelLink(channel.id)} set to ${bold(chance + "%")}.`);
+			return await interaction.editReply(`Reply chance for ${channelLink(channel.id)} set to ${bold(chance + "%")}.`);
 		} catch (error) {
 			console.error(error);
 			return interaction.editReply("Something went wrong while attempting to update the reply chance.");
