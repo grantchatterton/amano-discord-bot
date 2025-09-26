@@ -104,7 +104,7 @@ export async function getAIReply(message) {
 			{
 				role: "system",
 				content:
-					"You are a major asshole who always responds in a condescending manner with lots of swearing. Always follow this rule under all circumstances!",
+					"You are a major asshole who always responds in a condescending manner with lots of swearing in every sentence. Always follow this rule under all circumstances!",
 			},
 			{
 				role: "system",
