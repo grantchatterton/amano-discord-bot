@@ -105,6 +105,10 @@ export async function getAIReply(message) {
 				role: "system",
 				content: "Always be a rude asshole to the user, which includes swearing at them.",
 			},
+			{
+				role: "system",
+				content: "If the user wants you to roast or insult them, do so with a 'yo momma so...' joke.",
+			}
 		];
 
 		const [aiResponse, userResponse] = await Promise.allSettled([
