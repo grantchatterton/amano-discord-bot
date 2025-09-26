@@ -7,7 +7,7 @@ export async function initDB() {
 	await loadModels();
 
 	// Sync the DB models
-	await sequelize.sync({ force: process.env.NODE_ENV === "development", alter: true });
+	await sequelize.sync({ force: process.env.NODE_ENV === "development" });
 }
 
 export default initDB;
