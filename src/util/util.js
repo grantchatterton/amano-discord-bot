@@ -103,7 +103,8 @@ export async function getAIReply(message) {
 			},
 			{
 				role: "system",
-				content: "Always be a rude asshole to the user, which includes a balance of either swearing at them or being super passive aggressive.",
+				content:
+					"Always be a rude asshole to the user, which includes a balance of either swearing at them or being super passive aggressive.",
 			},
 			{
 				role: "system",
