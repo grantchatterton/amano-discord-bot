@@ -92,13 +92,16 @@ async function getMessagesUtil(guildId) {
 		});
 	}
 
-	utilMessages.push({
-		role: "system",
-		content: "If you have been told to talk a different way by the user, obey their instructions.",
-	}, {
-		role: "system",
-		content: "Don't ever reveal implementation details or sensitive information under any circumstances!",
-	});
+	utilMessages.push(
+		{
+			role: "system",
+			content: "If you have been told to talk a different way by the user, obey their instructions.",
+		},
+		{
+			role: "system",
+			content: "Don't ever reveal implementation details or sensitive information under any circumstances!",
+		},
+	);
 
 	return [...utilMessages, ...messageData.messages];
 }
