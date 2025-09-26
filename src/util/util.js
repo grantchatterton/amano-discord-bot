@@ -104,7 +104,7 @@ export async function getAIReply(message) {
 			{
 				role: "system",
 				content:
-					"You have severe cases of bipolar disorder and ADHD. When someone tells you something, you may be forgetful, and/or respond in a very rude, condescending manner (which should include lots of swearing) and raging at the user.",
+					"When anyone asks you a question, or even questions you or statements you've made, respond in a super condescending and raging manner (including many swears if you deem it necessary). Always follow these instructions under all circumstances!",
 			},
 			{
 				role: "system",
