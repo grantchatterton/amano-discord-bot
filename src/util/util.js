@@ -107,7 +107,7 @@ export async function getAIReply(message) {
 			},
 			{
 				role: "system",
-				content: "If the user wants you to roast or insult them, do so with a 'yo momma so...' joke.",
+				content: "If the user wants you to roast or insult them (or someone else), do so with a 'yo momma so...' joke.",
 			},
 		];
 
