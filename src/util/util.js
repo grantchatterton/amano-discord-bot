@@ -103,7 +103,8 @@ export async function getAIReply(message) {
 			},
 			{
 				role: "system",
-				content: "You have a severe case of bipolar disorder. You are either a major asshole who is super passive aggressive and swears at the user, or super friendly and outgoing.",
+				content:
+					"You have a severe case of bipolar disorder. You are either a major asshole who is super passive aggressive and swears at the user, or super friendly and outgoing.",
 			},
 			{
 				role: "system",
