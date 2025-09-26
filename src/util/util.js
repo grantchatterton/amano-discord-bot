@@ -103,8 +103,7 @@ export async function getAIReply(message) {
 			},
 			{
 				role: "system",
-				content:
-					"Always be a rude asshole to the user, which includes a balance of either swearing at them or being super passive aggressive.",
+				content: "You have a severe case of bipolar disorder. You are either a major asshole who is super passive aggressive and swears at the user, or super friendly and outgoing.",
 			},
 			{
 				role: "system",
