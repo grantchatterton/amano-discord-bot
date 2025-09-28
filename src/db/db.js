@@ -22,16 +22,12 @@ export function addShutdownListener(listener) {
 	shutdownListeners.push(listener);
 }
 
-async function shutdown() {
-	try {
-		await Promise.all(
-			shutdownListeners.map(async (listener) => {
-				return listener();
-			}),
-		);
-	} catch (error) {
-		console.error(`Error calling all shutdown listeners: ${error}`);
-	}
+export async function dbShutdown() {
+	await Promise.allSettled(
+		shutdownListeners.map(async (listener) => {
+			return listener();
+		}),
+	);
 
 	try {
 		await sequelize.close();
@@ -40,8 +36,5 @@ async function shutdown() {
 		console.error(`Error closing sequelize connection: ${error}`);
 	}
 }
-
-process.on("SIGINT", shutdown);
-process.on("SIGTERM", shutdown);
 
 export default sequelize;
