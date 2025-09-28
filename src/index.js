@@ -1,7 +1,8 @@
 import "./config.js";
 import process from "node:process";
 import { URL } from "node:url";
-import { quote, bold, Client, EmbedBuilder, GatewayIntentBits, Partials, WebhookClient, codeBlock } from "discord.js";
+import { bold, Client, GatewayIntentBits, Partials, WebhookClient, codeBlock } from "discord.js";
+import { dbShutdown } from "./db/db.js";
 import { initDB } from "./db/dbInit.js";
 import { loadCommands, loadEvents } from "./util/loaders.js";
 import { registerEvents } from "./util/registerEvents.js";
@@ -84,6 +85,7 @@ if (process.env.NODE_ENV === "development") {
 // Terminate peacefully when "SIGINT" or "SIGTERM" received
 async function shutdown() {
 	try {
+		await dbShutdown();
 		await client.destroy();
 		console.log(`Client successfully destroyed!`);
 	} catch (error) {
