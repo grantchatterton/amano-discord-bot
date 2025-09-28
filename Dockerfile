@@ -1,6 +1,6 @@
-FROM node:lts
+FROM node:lts-bookworm-slim
 
-RUN useradd --system appuser
+RUN useradd --system nodeuser
 
 WORKDIR /app
 
@@ -10,6 +10,6 @@ RUN npm ci --omit=dev
 
 COPY . .
 
-USER appuser
+USER nodeuser
 
 CMD ["node", "src/index.js"]

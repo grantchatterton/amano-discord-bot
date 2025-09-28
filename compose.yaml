@@ -1,5 +1,7 @@
 services:
-  instance:
+  bot:
     build: .
+    environment:
+      - NODE_ENV=development
     env_file:
-      - .env
+      - .env.development
