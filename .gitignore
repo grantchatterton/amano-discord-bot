@@ -55,5 +55,8 @@ bun.lockb
 .eslintcache
 .vercel
 
+# Configs
+config.json
+
 # Misc
 .misc
