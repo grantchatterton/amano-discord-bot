@@ -144,7 +144,9 @@ export async function getAIReply(message) {
 		}
 
 		const { mood, content } = JSON.parse(aiResponse.value.choices[0].message.content);
-
+		if (!content) {
+			throw new Error("content is empty!");
+		}
 		if (userResponse.status === "fulfilled") {
 			const user = userResponse.value;
 			if (user?.trackMessages) {
