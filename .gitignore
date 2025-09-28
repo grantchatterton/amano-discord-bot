@@ -60,3 +60,4 @@ config.json
 
 # Misc
 .misc
+.sequelize
