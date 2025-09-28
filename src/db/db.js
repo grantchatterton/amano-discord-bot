@@ -16,6 +16,8 @@ function createSequelize() {
 
 export const sequelize = createSequelize();
 
+await sequelize?.authenticate();
+
 const shutdownListeners = [];
 
 export function addShutdownListener(listener) {
