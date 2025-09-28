@@ -147,7 +147,7 @@ export async function getAIReply(message) {
 		if (!content) {
 			throw new Error("content is empty!");
 		}
-		
+
 		if (userResponse.status === "fulfilled") {
 			const user = userResponse.value;
 			if (user?.trackMessages) {
