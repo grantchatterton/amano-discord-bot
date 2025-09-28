@@ -1,4 +1,3 @@
-import { setTimeout } from "node:timers";
 import {
 	ApplicationCommandOptionType,
 	bold,
