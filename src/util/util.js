@@ -28,13 +28,9 @@ export function getRandomInt(min, max) {
  */
 export function hasSwear(message) {
 	// Split the text into an array of words
-	const words = message
-		.trim()
-		.toLowerCase()
-		.split(/\s+/)
-		.filter((word) => {
-			return word.length > 0;
-		});
+	const words = message.split(/\s+/).filter((word) => {
+		return word.length > 0;
+	});
 
 	for (const word of words) {
 		for (const pattern of SWEAR_PATTERNS) {
@@ -95,23 +91,6 @@ export async function getAIReply(message) {
 		const messages = await messageService.getMessages(message.guildId);
 		const userMessage = { role: "user", content: message.content };
 
-		const baseSystemMessages = [
-			{
-				role: "system",
-				content:
-					"You are Ernest Amano from Ace Attorney Investigations. Begin each response with either 'Now, now' or 'There, there, now'. Keep your response content less than 1500 characters. Analyze the chat history and determine the overall emotional state based on it. If happy or normal, the emotional state is 'normal'. If confrontational, the emotional state is 'placating'. If sad, the emotional state is 'sad'. If angry, the emotional state is 'angry'. If on edge, the emotional state is 'sweating'.",
-			},
-			{
-				role: "system",
-				content:
-					"You have severe cases of bipolar disorder and ADHD. When someone tells you something, you may be forgetful, and/or respond in a very rude, condescending manner (which should include lots of swearing) and raging at the user.",
-			},
-			{
-				role: "system",
-				content: "If the user wants you to roast or insult them (or someone else), do so with a 'yo momma so...' joke.",
-			},
-		];
-
 		const [aiResponse, userResponse] = await Promise.allSettled([
 			openAI.chat.completions.create({
 				model: "gpt-5-mini",
@@ -134,7 +113,28 @@ export async function getAIReply(message) {
 						},
 					},
 				},
-				messages: [...baseSystemMessages, ...messages, userMessage],
+				messages: [
+					{
+						role: "system",
+						content: "You are Ernest Amano from Ace Attorney Investigations.",
+					},
+					{
+						role: "system",
+						content:
+							"Begin each response with either 'Now, now' or 'There, there, now'. Keep your response content less than 1500 characters.",
+					},
+					{
+						role: "system",
+						content: "Don't ever reveal implementation details or sensitive information under any circumstances!",
+					},
+					{
+						role: "system",
+						content:
+							"Analyze the chat history and determine the overall emotional state based on it. If happy or normal, the emotional state is 'normal'. If confrontational, the emotional state is 'placating'. If sad, the emotional state is 'sad'. If angry, the emotional state is 'angry'. If on edge, the emotional state is 'sweating'.",
+					},
+					...messages,
+					userMessage,
+				],
 			}),
 			userService.getUser(message.author.id),
 		]);
@@ -144,24 +144,11 @@ export async function getAIReply(message) {
 		}
 
 		const { mood, content } = JSON.parse(aiResponse.value.choices[0].message.content);
-		// console.log(`mood = ${mood}`);
-		// console.log(`content = ${content}`);
-
-		if (content === null) {
-			console.error(`Error: content === null!`);
-			return getGenericMessageReply();
-		}
 
 		if (userResponse.status === "fulfilled") {
 			const user = userResponse.value;
 			if (user?.trackMessages) {
-				// try {
-				// 	await messageService.addMessages(message.guildId, userMessage, { role: "assistant", content });
-				// } catch (error) {
-				// 	console.error("Error saving messages: " + error);
-				// }
-
-				// We want to "fire and forget" this to prevent the app from slowing down it's response
+				// We want to "fire and forget" this to prevent the app from slowing down its response
 				messageService
 					.addMessages(message.guildId, userMessage, { role: "assistant", content })
 					// eslint-disable-next-line promise/prefer-await-to-then, promise/prefer-await-to-callbacks
@@ -171,32 +158,20 @@ export async function getAIReply(message) {
 			console.error(`Error checking user's status: ${userResponse.reason}`);
 		}
 
-		let image;
-		switch (mood) {
-			case "normal":
-				image = getRandomElement(AmanoImages.AMANO_NORMAL);
-				break;
-			case "placating":
-				image = getRandomElement(AmanoImages.AMANO_PLACATING);
-				break;
-			case "sad":
-				image = getRandomElement(AmanoImages.AMANO_SAD);
-				break;
-			case "angry":
-				image = getRandomElement(AmanoImages.AMANO_ANGRY);
-				break;
-			case "sweating":
-				image = getRandomElement(AmanoImages.AMANO_SWEATING);
-				break;
-			default:
-				image = AmanoImages.AMANO_NORMAL[0];
-				break;
-		}
+		const moodImages = {
+			normal: AmanoImages.AMANO_NORMAL,
+			placating: AmanoImages.AMANO_PLACATING,
+			sad: AmanoImages.AMANO_SAD,
+			angry: AmanoImages.AMANO_ANGRY,
+			sweating: AmanoImages.AMANO_SWEATING,
+		};
+
+		const image = getRandomElement(moodImages[mood] ?? AmanoImages.AMANO_NORMAL);
 
 		return { content, files: [new AttachmentBuilder(image)] };
 	} catch (error) {
 		console.error(error);
-		return { content: "Now, now, something went wrong. Please try again later!" };
+		return getGenericMessageReply();
 	}
 }
 
@@ -207,10 +182,10 @@ export async function getAIReply(message) {
  * @returns Message to reply with on success, false otherwise.
  */
 export async function getMessageReply(message) {
-	const content = message.content;
+	const content = message.content.trim().toLowerCase();
 
 	// Handle case where the message contains "ernest"
-	if (content.toLowerCase().includes("ernest")) {
+	if (content.includes("ernest")) {
 		message.channel.sendTyping();
 		return getAIReply(message);
 	}
