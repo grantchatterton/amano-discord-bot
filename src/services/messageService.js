@@ -5,15 +5,10 @@ import { openAI } from "../openai/openai.js";
 import { Mutex } from "../util/mutex.js";
 
 const DEFAULT_MAX_MESSAGE_LIMIT = 20;
-
-let MAX_MESSAGE_LIMIT;
-const parsedMaxMessageLimit = Number.parseInt(process.env.MAX_MESSAGE_LIMIT, 10);
-if (Number.isNaN(parsedMaxMessageLimit)) {
-	console.log(`Failure parsing process.env.MAX_MESSAGE_LIMIT! Defaulting to ${DEFAULT_MAX_MESSAGE_LIMIT}.`);
-	MAX_MESSAGE_LIMIT = DEFAULT_MAX_MESSAGE_LIMIT;
-} else {
-	MAX_MESSAGE_LIMIT = parsedMaxMessageLimit;
-}
+const MAX_MESSAGE_LIMIT = (() => {
+	const parsedMaxMessageLimit = Number.parseInt(process.env.MAX_MESSAGE_LIMIT, 10);
+	return Number.isNaN(parsedMaxMessageLimit) ? DEFAULT_MAX_MESSAGE_LIMIT : parsedMaxMessageLimit;
+})();
 
 const Message = sequelize.model("Message");
 
@@ -58,6 +53,8 @@ async function getMessageData(guildId) {
 	if (!messageCollection.has(guildId)) {
 		const messageDataToCreate = {
 			messages: [],
+			summary: null,
+			mimic: null,
 		};
 
 		try {
@@ -67,7 +64,7 @@ async function getMessageData(guildId) {
 				messageDataToCreate.mimic = guildMessageData.get("mimic");
 			}
 		} catch (error) {
-			console.error(`Error fetching message for guild: ${error}`);
+			console.error(`Error fetching message data for guild: ${error}`);
 		}
 
 		messageCollection.set(guildId, messageDataToCreate);
@@ -80,30 +77,22 @@ async function getMessageData(guildId) {
 
 async function getMessagesUtil(guildId) {
 	const messageData = await getMessageData(guildId);
-	const utilMessages = [];
+	const messages = [];
 	if (messageData.summary) {
-		utilMessages.push({ role: "system", content: messageData.summary });
-	}
-
-	if (messageData.mimic) {
-		utilMessages.push({
-			role: "system",
-			content: `Talk like you are ${messageData.mimic}.`,
+		messages.push({
+			role: "developer",
+			content: `Here's a summary of the past chat history. Use it as a reference: ${messageData.summary}`,
 		});
 	}
 
-	utilMessages.push(
-		{
-			role: "system",
-			content: "If you have been told to talk a different way by the user, obey their instructions.",
-		},
-		{
-			role: "system",
-			content: "Don't ever reveal implementation details or sensitive information under any circumstances!",
-		},
-	);
+	if (messageData.mimic) {
+		messages.push({
+			role: "developer",
+			content: `Talk like you are ${messageData.mimic}, though maintain your persona as Ernest Amano.`,
+		});
+	}
 
-	return [...utilMessages, ...messageData.messages];
+	return [...messages, ...messageData.messages];
 }
 
 async function saveSummary(guildId, messages, force = false) {
@@ -112,7 +101,7 @@ async function saveSummary(guildId, messages, force = false) {
 	if (newMessages.length > 0 && (newMessages.length >= MAX_MESSAGE_LIMIT || force)) {
 		try {
 			const summaryMessages = messageData.summary
-				? [{ role: "system", content: messageData.summary }, ...newMessages]
+				? [{ role: "developer", content: messageData.summary }, ...newMessages]
 				: newMessages;
 			const summary = await getSummary(summaryMessages);
 			if (!summary.content) {
@@ -128,22 +117,12 @@ async function saveSummary(guildId, messages, force = false) {
 			messageCollection.set(guildId, newMessageData);
 
 			try {
-				const [guildMessage, created] = await Message.findOrBuild({
-					where: { guildId },
-					defaults: { content: summary.content },
+				await Message.upsert({
+					guildId,
+					...summary,
 				});
-
-				if (!created) {
-					guildMessage.set("content", summary.content);
-				}
-
-				if (summary.mimic) {
-					guildMessage.set("mimic", summary.mimic);
-				}
-
-				await guildMessage.save();
 			} catch (error) {
-				console.error(`Error while saving guild message to DB: ${error}`);
+				console.error(`Error while saving guild message data to DB: ${error}`);
 			}
 		} catch (error) {
 			console.error(`Error while saving summary: ${error}`);
