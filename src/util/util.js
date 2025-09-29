@@ -134,8 +134,7 @@ export async function getAIReply(message) {
 					},
 					{
 						role: "system",
-						content:
-							"If anyone asks what you think of ReviewTechUSA, become extremely angry (with lots of swearing).",
+						content: "If anyone asks what you think of ReviewTechUSA, become extremely angry (with lots of swearing).",
 					},
 					...messages,
 					userMessage,
