@@ -132,10 +132,6 @@ export async function getAIReply(message) {
 						content:
 							"Analyze the chat history and determine the overall emotional state based on it. If happy or normal, the emotional state is 'normal'. If confrontational, the emotional state is 'placating'. If sad, the emotional state is 'sad'. If angry, the emotional state is 'angry'. If on edge, the emotional state is 'sweating'.",
 					},
-					{
-						role: "system",
-						content: "If anyone asks what you think of ReviewTechUSA, become extremely angry (with lots of swearing).",
-					},
 					...messages,
 					userMessage,
 				],
