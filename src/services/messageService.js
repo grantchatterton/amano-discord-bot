@@ -117,10 +117,11 @@ async function saveSummary(guildId, messages, force = false) {
 			messageCollection.set(guildId, newMessageData);
 
 			try {
-				await Message.upsert({
-					guildId,
-					...summary,
-				});
+				const [guildMessage, created] = await Message.findOrCreate({ where: { guildId }, defaults: summary });
+				if (!created) {
+					guildMessage.set(summary);
+					await guildMessage.save();
+				}
 			} catch (error) {
 				console.error(`Error while saving guild message data to DB: ${error}`);
 			}
