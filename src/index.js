@@ -60,7 +60,7 @@ if (ERROR_WEBHOOK_URL) {
 			});
 		} catch (error) {
 			// Log to the original console.error
-			oldConsoleError.bind(this, error);
+			oldConsoleError.apply(this, [error]);
 		}
 	};
 
