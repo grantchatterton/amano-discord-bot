@@ -16,7 +16,7 @@ function createSequelize() {
 
 export const sequelize = createSequelize();
 
-await sequelize?.authenticate();
+await sequelize.authenticate();
 
 const shutdownListeners = [];
 
@@ -31,12 +31,12 @@ export async function dbShutdown() {
 		}),
 	);
 
-	try {
+	/*try {
 		await sequelize.close();
 		console.log("Sequelize connection closed");
 	} catch (error) {
 		console.error(`Error closing sequelize connection: ${error}`);
 	}
-}
+}*/
 
 export default sequelize;
