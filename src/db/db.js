@@ -36,7 +36,7 @@ export async function dbShutdown() {
 		console.log("Sequelize connection closed");
 	} catch (error) {
 		console.error(`Error closing sequelize connection: ${error}`);
-	}
-}*/
+	}*/
+}
 
 export default sequelize;
