@@ -28,12 +28,10 @@ export function getRandomInt(min, max) {
  */
 export function hasSwear(message) {
 	// Split the text into an array of words
- 	const urlRegex = /^(https?:\/\/)?([\w-]+\.)+[\w-]+(\/[\w-]*)*$/;
+	const urlRegex = /^(https?:\/\/)?([\w-]+\.)+[\w-]+(\/[\w-]*)*$/;
 	const words = message.split(/\s+/).filter((word) => {
 		return word.length > 0 && !urlRegex.test(word);
 	});
-	
-
 
 	for (const word of words) {
 		for (const pattern of SWEAR_PATTERNS) {
