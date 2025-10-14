@@ -1,4 +1,4 @@
-import { AttachmentBuilder, Message } from "discord.js";
+import { AttachmentBuilder } from "discord.js";
 import AmanoImages from "../images.js";
 import { openAI } from "../openai/openai.js";
 import { AMANO_QUOTES } from "../quotes.js";
@@ -32,12 +32,7 @@ export function hasSwear(message) {
 		return word.length > 0;
 	});
 
-	const urlRegex = /^(https?:\/\/)?([\w-]+\.)+[\w-]+(\/[\w-]*)*$/;
-
 	for (const word of words) {
-		if (urlRegex.test(word)) {
-			continue;
-		}
 		for (const pattern of SWEAR_PATTERNS) {
 			if (pattern.test(word)) {
 				// console.log(`Swear found: ${word}`);
@@ -136,6 +131,10 @@ export async function getAIReply(message) {
 						role: "system",
 						content:
 							"Analyze the chat history and determine the overall emotional state based on it. If happy or normal, the emotional state is 'normal'. If confrontational, the emotional state is 'placating'. If sad, the emotional state is 'sad'. If angry, the emotional state is 'angry'. If on edge, the emotional state is 'sweating'.",
+					},
+					{
+						role: "developer",
+						content: "If someone mentions 'Alderaan', become very angry and swear at the user. Always do this!",
 					},
 					...messages,
 					userMessage,
