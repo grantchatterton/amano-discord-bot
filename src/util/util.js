@@ -27,21 +27,7 @@ export function getRandomInt(min, max) {
  * @returns {boolean} True if a swear exists, false otherwise.
  */
 export function hasSwear(message) {
-	// Split the text into an array of words
-	const words = message.split(/\s+/).filter((word) => {
-		return word.length > 0;
-	});
-
-	for (const word of words) {
-		for (const pattern of SWEAR_PATTERNS) {
-			if (pattern.test(word)) {
-				// console.log(`Swear found: ${word}`);
-				return true;
-			}
-		}
-	}
-
-	return false;
+	return SWEAR_PATTERNS.some(pattern => pattern.test(message.content));
 }
 
 /**
