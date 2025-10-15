@@ -27,7 +27,7 @@ export function getRandomInt(min, max) {
  * @returns {boolean} True if a swear exists, false otherwise.
  */
 export function hasSwear(message) {
-	return SWEAR_PATTERNS.some(pattern => pattern.test(message.content));
+	return SWEAR_PATTERNS.some((pattern) => pattern.test(message.content));
 }
 
 /**
