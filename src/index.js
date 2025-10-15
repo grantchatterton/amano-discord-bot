@@ -1,5 +1,4 @@
 import "./config.js";
-
 import process from "node:process";
 import { URL } from "node:url";
 import { Client, GatewayIntentBits, Partials } from "discord.js";
@@ -37,7 +36,7 @@ async function shutdown() {
 	try {
 		await dbShutdown();
 		await client.destroy();
-		console.log(`Client successfully destroyed!`);
+		console.log("Client successfully destroyed!");
 	} catch (error) {
 		console.error(error);
 		process.exit(1);
