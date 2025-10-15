@@ -33,7 +33,14 @@ export function hasSwear(message) {
 		return word.length > 0;
 	});
 
+	// eslint-disable-next-line prefer-named-capture-group
+	const urlRegex = /^(https?:\/\/)?([\w-]+\.)+[\w-]+(\/[\w-]*)*$/;
+
 	for (const word of words) {
+		if (urlRegex.test(word)) {
+			continue;
+		}
+
 		for (const pattern of SWEAR_PATTERNS) {
 			if (pattern.test(word)) {
 				// console.log(`Swear found: ${word}`);
