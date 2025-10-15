@@ -29,9 +29,9 @@ export function getRandomInt(min, max) {
 export function hasSwear(message) {
 	const wordMatches = message.content.match(/\b\w+\b/g);
 	if (wordMatches !== null) {
-			return wordMatches.some(wordMatch => SWEAR_PATTERNS.some(pattern => pattern.test(wordMatch.toString())));
+		return wordMatches.some((wordMatch) => SWEAR_PATTERNS.some((pattern) => pattern.test(wordMatch.toString())));
 	}
-	
+
 	return false;
 }
 
