@@ -5,7 +5,7 @@ import { userService } from "../services/userService.js";
 export default {
 	data: {
 		name: "track",
-		description: "Allows users to opt in/out of having their messages tracked.",
+		description: "Allows users to opt in/out of having their messages tracked",
 		options: [
 			{
 				type: ApplicationCommandOptionType.Subcommand,

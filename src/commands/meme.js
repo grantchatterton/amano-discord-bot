@@ -5,7 +5,7 @@ import { ApplicationCommandOptionType } from "discord.js";
 export default {
 	data: {
 		name: "meme",
-		description: "Send a random meme!",
+		description: "Send a random meme",
 		options: [
 			{
 				type: ApplicationCommandOptionType.String,

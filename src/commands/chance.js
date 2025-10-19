@@ -13,7 +13,7 @@ import { channelService } from "../services/channelService.js";
 export default {
 	data: {
 		name: "chance",
-		description: "Set the chance of replying to a message containing a swear for a channel.",
+		description: "Set the chance of replying to a message containing a swear for a channel",
 		default_member_permissions: PermissionFlagsBits.ManageChannels.toString(),
 		contexts: [InteractionContextType.Guild],
 		options: [

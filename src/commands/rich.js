@@ -2,7 +2,7 @@
 export default {
 	data: {
 		name: "rich",
-		description: "Send a picture of ReviewTechUSA!",
+		description: "Send a picture of ReviewTechUSA",
 	},
 	async execute(interaction) {
 		await interaction.reply(
