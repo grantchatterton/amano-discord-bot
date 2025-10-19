@@ -32,9 +32,10 @@ export default {
 		if (count === 1) {
 			await interaction.reply(`You rolled: ${getRandomInt(1, sides)}`);
 		} else {
-			const response = Array.from({ length: count }, () => getRandomInt(1, sides))
-				.map((value, index) => `Dice #${index + 1}: ${value}`)
-				.join("\n");
+			const response = Array.from(
+				{ length: count },
+				(_value, index) => `Dice #${index + 1}: ${getRandomInt(1, sides)}`,
+			).join("\n");
 			await interaction.reply(response);
 		}
 	},
