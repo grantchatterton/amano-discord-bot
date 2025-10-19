@@ -1,4 +1,3 @@
-# Internal
 .env
 .env.*
 .eslintrc.json
@@ -7,9 +6,6 @@
 .prettierrc.json
 .vscode
 README.md
-
-# Directories
 .github
-.vscode
 node_modules
 secrets
