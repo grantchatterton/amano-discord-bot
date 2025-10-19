@@ -10,7 +10,7 @@ export default {
 			{
 				type: ApplicationCommandOptionType.String,
 				name: "subreddit",
-				description: "Subreddit to fetch the meme from.",
+				description: "Subreddit to fetch the meme from",
 				required: false,
 			},
 		],
