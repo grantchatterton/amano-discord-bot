@@ -10,9 +10,9 @@ import { SWEAR_PATTERNS } from "../swears.js";
 /**
  * Returns a random integer in the range [min, max].
  *
- * @param {number} min - Minimum value.
- * @param {number} max - Maximum value.
- * @returns {number} Random integer.
+ * @param {number} min Minimum value
+ * @param {number} max Maximum value
+ * @returns {number} Random integer
  */
 export function getRandomInt(min, max) {
 	const minCeil = Math.ceil(min);
@@ -23,12 +23,11 @@ export function getRandomInt(min, max) {
 /**
  * Given a message, returns whether it possesses a swear word.
  *
- * @param {string} message 	Message to check.
- * @returns {boolean} True if a swear exists, false otherwise.
+ * @param {string} message 	Message to check
+ * @returns {boolean} True if a swear exists, false otherwise
  */
 export function hasSwear(message) {
 	// Split the text into an array of words
-
 	const words = message.split(/\s+/).filter((word) => {
 		return word.length > 0;
 	});
@@ -54,46 +53,47 @@ export function hasSwear(message) {
 }
 
 /**
- * Returns a random array element.
+ * Returns a random array element
  *
- * @returns {any} Random element.
+ * @returns {any} Random element
  */
 export function getRandomElement(array) {
 	return array[getRandomInt(0, array.length - 1)];
 }
 
 /**
- * Returns a Promise containing a reply quote.
+ * Returns a reply quote
  *
- * @returns {Promise<string>} Random quote.
+ * @returns {string} Random quote
  */
-export async function getReplyQuote() {
+export function getReplyQuote() {
 	return getRandomElement(AMANO_QUOTES);
 }
 
 /**
- * Returns a Promise containing an image URL for replying to a message.
+ * Returns an image URL for a message reply
  *
- * @returns {Promise<string>} Image URL.
+ * @returns {string} Image URL
  */
-export async function getReplyImage() {
+export function getReplyImage() {
 	return getRandomElement(AmanoImages.AMANO_PLACATING);
 }
 
 /**
- * Returns a generic message reply.
+ * Returns a generic message reply
  *
- * @returns {any} Message reply object.
+ * @returns {any} Message reply object
  */
-export async function getGenericMessageReply() {
-	const [quote, image] = await Promise.all([getReplyQuote(), getReplyImage()]);
+export function getGenericMessageReply() {
+	const quote = getReplyQuote();
+	const image = getReplyImage();
 	return { content: quote, files: [new AttachmentBuilder(image)] };
 }
 
 /**
- * Returns a Promise containing an AI generated reply.
+ * Returns a Promise containing an AI generated reply
  *
- * @returns {Promise<string>} Reply content.
+ * @returns {Promise<string>} Reply content
  */
 export async function getAIReply(message) {
 	try {
@@ -192,10 +192,10 @@ export async function getAIReply(message) {
 }
 
 /**
- * Returns a Promise containing either a message reply or a false value.
+ * Returns a Promise containing either a message reply or a false value
  *
- * @param message Message object.
- * @returns Message to reply with on success, false otherwise.
+ * @param message Message object
+ * @returns Message to reply with on success, false otherwise
  */
 export async function getMessageReply(message) {
 	const content = message.content.trim().toLowerCase();
