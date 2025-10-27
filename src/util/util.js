@@ -43,7 +43,6 @@ export function hasSwear(message) {
 		for (const pattern of SWEAR_PATTERNS) {
 			if (pattern.test(word)) {
 				// console.log(`Swear found: ${word}`);
-
 				return true;
 			}
 		}
