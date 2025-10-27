@@ -17,7 +17,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          
+
       - name: Setup node
         uses: actions/setup-node@v4
         with:
@@ -73,7 +73,7 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           if [[ $(git diff --stat) != '' ]]; then
             git add .
-            git commit -m "Auto-format code"
+            git commit -m "style: Auto-format code"
             git push
           fi
 
