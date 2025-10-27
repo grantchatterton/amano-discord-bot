@@ -46,6 +46,7 @@ jobs:
 
   release:
     name: Release
+    needs: lint-and-format
     runs-on: ubuntu-latest
     permissions:
       contents: write # to be able to publish a GitHub release
@@ -76,7 +77,7 @@ jobs:
 
   deploy:
     name: Deploy the App to Production
-    needs: lint-and-format # Ensure linting and formatting pass before deployment
+    needs: [lint-and-format, release] # Ensure linting and formatting pass before deployment
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
