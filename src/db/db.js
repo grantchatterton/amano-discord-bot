@@ -30,13 +30,6 @@ export async function dbShutdown() {
 			return listener();
 		}),
 	);
-
-	/* try {
-		await sequelize.close();
-		console.log("Sequelize connection closed");
-	} catch (error) {
-		console.error(`Error closing sequelize connection: ${error}`);
-	}*/
 }
 
 export default sequelize;
