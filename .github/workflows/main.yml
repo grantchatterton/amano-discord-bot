@@ -43,9 +43,6 @@ jobs:
             git add .
             git commit -m "Auto-format code"
             git push
-            echo "::set-output name=formatted::true"
-          else
-            echo "::set-output name=formatted::false"
           fi
 
   deploy:
