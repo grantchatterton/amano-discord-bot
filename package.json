@@ -5,8 +5,10 @@
 	"private": true,
 	"type": "module",
 	"scripts": {
-		"lint": "prettier --check . && eslint --ext .js,.mjs,.cjs src",
-		"format": "prettier --write . && eslint --ext .js,.mjs,.cjs --fix src",
+		"lint": "eslint --ext .js,.mjs,.cjs src",
+		"lint:fix": "eslint --ext .js,.mjs,.cjs --fix src",
+		"format": "prettier --write .",
+		"format:check": "prettier --check .",
 		"start": "node --require dotenv/config src/index.js",
 		"deploy": "node --require dotenv/config src/util/deploy.js"
 	},
