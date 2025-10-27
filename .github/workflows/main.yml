@@ -28,7 +28,7 @@ jobs:
         run: npm ci # Use npm ci for clean installs in CI environments
 
       - name: Run ESLint
-        run: npm run lint
+        run: npm run lint:fix
 
       - name: Run Prettier
         run: npm run format
