@@ -1,5 +1,5 @@
 import process from "node:process";
-import { Collection } from "discord.js";
+import QuickLRU from "quick-lru";
 import { sequelize, addShutdownListener } from "../db/db.js";
 import { openAI } from "../openai/openai.js";
 import { Mutex } from "../util/mutex.js";
@@ -12,7 +12,8 @@ const MAX_MESSAGE_LIMIT = (() => {
 
 const Message = sequelize.models.Message;
 
-const messageCollection = new Collection();
+// Replace Collection when you want automatic eviction:
+const messageCollection = new QuickLRU({ maxSize: 500 }); // tune maxSize
 
 const mutex = new Mutex();
 
