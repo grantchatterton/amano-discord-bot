@@ -31,7 +31,7 @@ export async function dbShutdown() {
 		}),
 	);
 
-	/*try {
+	/* try {
 		await sequelize.close();
 		console.log("Sequelize connection closed");
 	} catch (error) {
