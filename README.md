@@ -13,7 +13,7 @@ Amano is a Discord bot used for automated replies and a set of fun utility comma
 - Node.js 18+ (recommended)
 - npm (or yarn)
 - A Discord application and bot token (from the Discord Developer Portal)
-- (Optional) OpenAI API key if you want OpenAI features
+- OpenAI API key
 
 ## Quick start — run locally
 
@@ -32,8 +32,8 @@ At minimum include:
 ```
 DISCORD_TOKEN=your_bot_token_here
 APPLICATION_ID=your_application_id_here
-# Optional
 OPENAI_API_KEY=your_openai_key_here
+# Optional
 MAX_MESSAGE_LIMIT=100
 NODE_ENV=development
 ```
