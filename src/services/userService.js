@@ -6,13 +6,13 @@ const User = sequelize.model("User");
 const userCollection = new Collection();
 
 export const userService = {
-	async getUser(userId) {
-		if (!userCollection.has(userId)) {
-			const [user] = await User.findOrBuild({ where: { userId } });
-			userCollection.set(userId, user);
-			return user;
-		}
+    async getUser(userId) {
+        if (!userCollection.has(userId)) {
+            const [user] = await User.findOrCreate({ where: { userId }, defaults: { userId } });
+            userCollection.set(userId, user);
+            return user;
+        }
 
-		return userCollection.get(userId);
-	},
+        return userCollection.get(userId);
+    },
 };
