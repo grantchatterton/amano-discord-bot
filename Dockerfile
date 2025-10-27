@@ -1,6 +1,6 @@
-FROM node:lts-bookworm-slim
+FROM node:lts-alpine
 
-RUN useradd --system nodeuser
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 
 WORKDIR /app
 
@@ -8,8 +8,8 @@ COPY package*.json .
 
 RUN npm ci --omit=dev
 
-COPY . .
+COPY --chown=appuser:appgroup . .
 
-USER nodeuser
+USER appuser
 
 CMD ["node", "src/index.js"]
