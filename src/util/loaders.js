@@ -2,6 +2,7 @@ import { readdir, stat } from "node:fs/promises";
 import { URL } from "node:url";
 import { predicate as commandPredicate } from "../commands/index.js";
 import { predicate as eventPredicate } from "../events/index.js";
+import { ModelLoaderSchema, predicate as modelLoaderPredicate } from "../models/index.js";
 
 /**
  * A predicate to check if the structure is valid.
@@ -82,4 +83,14 @@ export async function loadCommands(dir, recursive = true) {
  */
 export async function loadEvents(dir, recursive = true) {
 	return loadStructures(dir, eventPredicate, recursive);
+}
+
+/**
+ * @param {import('node:fs').PathLike} dir
+ * @param {boolean} [recursive]
+ * @returns {Promise<import('../models/index.js').ModelLoader[]>}
+ */
+export async function loadModels(dir, recursive = true) {
+	const structures = await loadStructures(dir, modelLoaderPredicate, recursive);
+	return structures.map((modelLoader) => ModelLoaderSchema.implement(modelLoader));
 }

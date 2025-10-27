@@ -1,6 +1,10 @@
+import { DataTypes } from "sequelize";
 import { MESSAGE_REPLY_CHANCE } from "../config.js";
 
-export default (sequelize, DataTypes) => {
+/**
+ * @type {import("./index.js").ModelLoader}
+ */
+export default (sequelize) => {
 	return sequelize.define("Channel", {
 		id: {
 			type: DataTypes.INTEGER,

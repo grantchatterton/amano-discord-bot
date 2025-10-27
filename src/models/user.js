@@ -1,4 +1,9 @@
-export default (sequelize, DataTypes) => {
+import { DataTypes } from "sequelize";
+
+/**
+ * @type {import("./index.js").ModelLoader}
+ */
+export default (sequelize) => {
 	return sequelize.define("User", {
 		id: {
 			type: DataTypes.INTEGER,

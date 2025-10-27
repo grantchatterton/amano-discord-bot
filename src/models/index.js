@@ -1,19 +1,16 @@
-import fs from "node:fs/promises";
-import { DataTypes } from "sequelize";
-import { sequelize } from "../db/db.js";
+import { Sequelize } from "sequelize";
+import { z } from "zod";
 
-export async function loadModels() {
-	try {
-		const files = await fs.readdir(import.meta.dirname);
-		for (const file of files) {
-			if (file !== "index.js" && file.endsWith(".js")) {
-				const module = await import(`./${file}`);
-				module.default(sequelize, DataTypes);
-			}
-		}
-	} catch (error) {
-		console.error(error);
-	}
-}
+export const ModelLoaderSchema = z.function().args(z.instanceof(Sequelize)).returns(z.any());
 
-export default loadModels;
+/**
+ * @typedef {z.infer<typeof ModelLoaderSchema>} ModelLoader
+ */
+
+/**
+ * Defines the predicate to check if an object is a valid ModelLoader type.
+ *
+ * @type {import('../util/loaders.js').StructurePredicate<ModelLoader>}
+ * @returns {structure is ModelLoader}
+ */
+export const predicate = (structure) => ModelLoaderSchema.safeParse(structure).success;
