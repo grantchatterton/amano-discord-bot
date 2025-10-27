@@ -79,6 +79,7 @@ jobs:
 
   release:
     name: Release
+    if: github.event_name == 'push'
     needs: lint-and-format
     runs-on: ubuntu-latest
     permissions:
