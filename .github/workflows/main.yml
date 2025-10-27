@@ -4,9 +4,8 @@ on:
   push:
     branches:
       - main # Trigger on pushes to the main branch
-  pull_request:
-    branches:
-      - main # Trigger on pull requests targeting the main branch
+    paths:
+      - "src/**"
   workflow_dispatch: # Allow manual triggers
 
 jobs:
@@ -61,7 +60,15 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - uses: dorny/paths-filter@v3
+        id: changes
+        with:
+          filters: |
+            commands:
+              - 'src/commands/**'
+
       - name: Deploy Discord commands
+        if: steps.changes.outputs.commands == 'true'
         env:
           DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}
           APPLICATION_ID: ${{ secrets.APPLICATION_ID }}
