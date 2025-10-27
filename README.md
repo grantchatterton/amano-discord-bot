@@ -116,11 +116,6 @@ Notes:
 - Use the URL generator to get the correct permissions integer for specific permissions instead of using broad permissions like Administrator.
 - After inviting the bot, register commands with `npm run deploy` (see "Registering commands" above) if needed.
 
-## Development notes
-
-- The bot uses an in-memory SQLite database when `NODE_ENV !== 'production'`. For production set DB\_\* environment variables and `NODE_ENV=production`.
-- Commands live in `src/commands/` and events in `src/events/`.
-
 ## Contributing
 
 - Open an issue or PR. Keep changes small and focused.
