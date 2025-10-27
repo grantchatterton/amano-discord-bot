@@ -1,0 +1,99 @@
+name: Node.js CI/CD
+
+on:
+  push:
+    branches:
+      - main # Trigger on pushes to the main branch
+  pull_request:
+    branches:
+      - main # Trigger on pull requests targeting the main branch
+  workflow_dispatch: # Allow manual triggers
+
+jobs:
+  lint-and-format:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          # Important: Full history is needed to push changes
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20" # Specify your desired Node.js version
+
+      - name: Install dependencies
+        run: npm ci # Use npm ci for clean installs in CI environments
+
+      - name: Run ESLint
+        run: npm run lint
+
+      - name: Run Prettier
+        run: npm run format
+
+      - name: Check for changes and commit if necessary
+        id: git-check
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          if [[ $(git diff --stat) != '' ]]; then
+            git add .
+            git commit -m "Auto-format code"
+            git push
+            echo "::set-output name=formatted::true"
+          else
+            echo "::set-output name=formatted::false"
+          fi
+
+  deploy:
+    needs: lint-and-format # Ensure linting and formatting pass before deployment
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Deploy Discord commands
+        env:
+          DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}
+          APPLICATION_ID: ${{ secrets.APPLICATION_ID }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: npm run deploy
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ vars.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          push: true
+          tags: gchatterton/amano-discord-bot:latest
+
+      - name: Restart/Redeploy the app on the VPS
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd ${{ secrets.VPS_PATH }}
+            docker compose -f compose.yml -p amano-bot down --rmi all
+            docker compose -f compose.yml -p amano-bot up -d --pull always
