@@ -1,14 +1,14 @@
 import { Collection } from "discord.js";
 import { sequelize } from "../db/db.js";
 
-const Channel = sequelize.model("Channel");
+const Channel = sequelize.models.Channel;
 
 const channelCollection = new Collection();
 
 export const channelService = {
 	async getChannel(channelId) {
 		if (!channelCollection.has(channelId)) {
-			const [channel] = await Channel.findOrBuild({ where: { channelId } });
+			const [channel] = await Channel.findOrCreate({ where: { channelId }, defaults: { channelId } });
 			channelCollection.set(channelId, channel);
 			return channel;
 		}
