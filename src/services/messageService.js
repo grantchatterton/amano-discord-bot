@@ -58,10 +58,15 @@ async function getMessageData(guildId) {
 		};
 
 		try {
-			const guildMessageData = await Message.findOne({ where: { guildId }, attributes: ["content", "mimic"] });
+			// return plain object to avoid creating a model instance
+			const guildMessageData = await Message.findOne({
+				where: { guildId },
+				attributes: ["content", "mimic"],
+				raw: true,
+			});
 			if (guildMessageData) {
-				messageDataToCreate.summary = guildMessageData.get("content");
-				messageDataToCreate.mimic = guildMessageData.get("mimic");
+				messageDataToCreate.summary = guildMessageData.content;
+				messageDataToCreate.mimic = guildMessageData.mimic;
 			}
 		} catch (error) {
 			console.error(`Error fetching message data for guild: ${error}`);
@@ -117,11 +122,8 @@ async function saveSummary(guildId, messages, force = false) {
 			messageCollection.set(guildId, newMessageData);
 
 			try {
-				const [guildMessage, created] = await Message.findOrCreate({ where: { guildId }, defaults: summary });
-				if (!created) {
-					guildMessage.set(summary);
-					await guildMessage.save();
-				}
+				// use upsert to reduce round trips (single statement)
+				await Message.upsert({ guildId, content: summary.content, mimic: summary.mimic });
 			} catch (error) {
 				console.error(`Error while saving guild message data to DB: ${error}`);
 			}
