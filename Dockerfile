@@ -1,6 +1,6 @@
-FROM node:lts-alpine
+FROM node:lts-bookworm-slim
 
-RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+RUN adduser --disabled-password --gecos "" appuser
 
 WORKDIR /app
 
@@ -8,7 +8,7 @@ COPY package*.json .
 
 RUN npm ci --omit=dev
 
-COPY --chown=appuser:appgroup . .
+COPY --chown=appuser:appuser . .
 
 USER appuser
 
