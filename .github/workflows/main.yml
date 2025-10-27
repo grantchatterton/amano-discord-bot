@@ -4,9 +4,15 @@ on:
   push:
     branches:
       - main # Trigger on pushes to the main branch
+    paths:
+      - '**.js'
+      - '**.json'
   pull_request:
     branches:
       - main
+    paths:
+      - '**.js'
+      - '**.json'
   workflow_dispatch: # Allow manual triggers
 
 jobs:
