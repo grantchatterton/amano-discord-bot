@@ -10,7 +10,7 @@ const MAX_MESSAGE_LIMIT = (() => {
 	return Number.isNaN(parsedMaxMessageLimit) ? DEFAULT_MAX_MESSAGE_LIMIT : parsedMaxMessageLimit;
 })();
 
-const Message = sequelize.model("Message");
+const Message = sequelize.models.Message;
 
 const messageCollection = new Collection();
 
