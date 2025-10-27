@@ -75,7 +75,7 @@ When running in Docker you should supply environment variables via a `.env` file
 
 - DISCORD_TOKEN — (required) the bot token from Discord Developer Portal
 - APPLICATION_ID — (required for registering commands) your application's client id
-- OPENAI_API_KEY — (required) OpenAI API key if OpenAI features are desired
+- OPENAI_API_KEY — (required) OpenAI API key
 - NODE_ENV — (optional) set to `production` in production; default is `development`
 - MAX_MESSAGE_LIMIT — (optional) used by message service (integer)
 - DB\_\* variables — only required if you run with a production database (see `src/db/db.js`)
