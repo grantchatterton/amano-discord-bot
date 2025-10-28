@@ -2,7 +2,6 @@ import { AttachmentBuilder } from "discord.js";
 import AmanoImages from "../images.js";
 import { openAI } from "../openai/openai.js";
 import { AMANO_QUOTES } from "../quotes.js";
-import { messageService } from "../services/messageService.js";
 import serviceContainer from "../services/serviceContainer.js";
 import { userService } from "../services/userService.js";
 import { SWEAR_PATTERNS } from "../swears.js";
@@ -96,6 +95,7 @@ export function getGenericMessageReply() {
  */
 export async function getAIReply(message) {
 	try {
+		const messageService = serviceContainer.resolve("messageService");
 		const messages = await messageService.getMessages(message.guildId);
 		const userMessage = { role: "user", content: message.content };
 
@@ -222,14 +222,3 @@ export async function getMessageReply(message) {
 	message.channel.sendTyping();
 	return getGenericMessageReply();
 }
-
-export default {
-	getRandomInt,
-	hasSwear,
-	getRandomElement,
-	getReplyQuote,
-	getReplyImage,
-	getGenericMessageReply,
-	getAIReply,
-	getMessageReply,
-};
