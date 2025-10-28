@@ -21,10 +21,10 @@ export default {
 		await interaction.deferReply();
 
 		const response = await getAIReply({
-            author: interaction.member,
-            content: message,
-            guildId: interaction.guildId,
-        });
-        await interaction.editReply(response);
+			author: interaction.member,
+			content: message,
+			guildId: interaction.guildId,
+		});
+		await interaction.editReply(response);
 	},
 };
