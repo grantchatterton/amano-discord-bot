@@ -1,5 +1,7 @@
 # Amano Discord Bot
 
+![GitHub Release](https://img.shields.io/github/v/release/grantchatterton/amano-discord-bot)
+
 Amano is a Discord bot used for automated replies and a set of fun utility commands. It was built with Node.js, discord.js, and Sequelize (SQLite in development). The bot can run locally, be deployed in Docker, or run in other Node.js-compatible environments.
 
 ## Features
