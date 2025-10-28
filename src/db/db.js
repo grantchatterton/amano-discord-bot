@@ -18,18 +18,4 @@ export const sequelize = createSequelize();
 
 await sequelize.authenticate();
 
-const shutdownListeners = [];
-
-export function addShutdownListener(listener) {
-	shutdownListeners.push(listener);
-}
-
-export async function dbShutdown() {
-	await Promise.allSettled(
-		shutdownListeners.map(async (listener) => {
-			return listener();
-		}),
-	);
-}
-
 export default sequelize;

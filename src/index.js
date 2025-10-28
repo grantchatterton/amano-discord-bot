@@ -2,12 +2,13 @@ import process from "node:process";
 import { URL } from "node:url";
 import { Client, GatewayIntentBits, Partials } from "discord.js";
 import { MAX_MESSAGE_LIMIT } from "./config.js";
-import { dbShutdown, sequelize } from "./db/db.js";
+import { sequelize } from "./db/db.js";
 import { initDB } from "./db/dbInit.js";
 import { openAI } from "./openai/openai.js";
 import ChannelService from "./services/channelService.js";
 import MessageService from "./services/messageService.js";
 import serviceContainer from "./services/serviceContainer.js";
+import UserService from "./services/userService.js";
 import { loadCommands, loadEvents } from "./util/loaders.js";
 import { registerEvents } from "./util/registerEvents.js";
 
@@ -17,6 +18,7 @@ await initDB();
 // Initialize services
 serviceContainer.register("channelService", new ChannelService(sequelize.models.Channel));
 serviceContainer.register("messageService", new MessageService(sequelize.models.Message, openAI, MAX_MESSAGE_LIMIT));
+serviceContainer.register("userService", new UserService(sequelize.models.User));
 
 // Initialize the client
 const client = new Client({
@@ -42,9 +44,9 @@ void client.login(process.env.DISCORD_TOKEN);
 // Terminate peacefully when "SIGINT" or "SIGTERM" received
 async function shutdown() {
 	try {
-		await dbShutdown();
 		await client.destroy();
 		console.log("Client successfully destroyed!");
+		process.exit(0);
 	} catch (error) {
 		console.error(error);
 		process.exit(1);
