@@ -5,6 +5,10 @@ on:
     types: [published]
   workflow_dispatch: # Allow manual triggers
 
+concurrency:
+  group: discord-deploy
+  cancel-in-progress: false
+
 jobs:
   check-changes:
     name: Check for Changes in Commands Directory
@@ -37,7 +41,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-depth: 1
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
