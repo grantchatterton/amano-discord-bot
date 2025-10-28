@@ -11,5 +11,5 @@ export const MESSAGE_REPLY_IMAGE = "https://static.wikia.nocookie.net/aceattorne
 
 export const MAX_MESSAGE_LIMIT = (() => {
 	const limit = Number.parseInt(process.env.MAX_MESSAGE_LIMIT, 10);
-	return Number.isNaN(limit) ? 10 : limit;
+	return Number.isNaN(limit) ? 20 : limit;
 })();
