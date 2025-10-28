@@ -48,7 +48,6 @@ jobs:
         run: npx commitlint --from ${{ github.event.pull_request.base.sha }} --to ${{ github.event.pull_request.head.sha }} --verbose
 
   lint-and-format:
-    needs: commit-lint
     name: Lint and Format the Code
     runs-on: ubuntu-latest
     steps:
