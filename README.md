@@ -2,7 +2,7 @@
 
 [![Latest Release](https://img.shields.io/github/v/release/grantchatterton/amano-discord-bot)](https://github.com/grantchatterton/amano-discord-bot/releases/latest)
 
-[![Invite Amano](https://img.shields.io/badge/Invite%20To%20Your%20Server-%235865F2.svg?style=for-the-badge&logo=discord&logoColor=white)](https://github.com/grantchatterton/amano-discord-bot#inviting-the-bot-to-a-discord-server)
+[![Invite Amano](https://img.shields.io/badge/Invite%20To%20Your%20Server-%235865F2.svg?style=for-the-badge&logo=discord&logoColor=white)](https://discord.com/oauth2/authorize?client_id=1315330069287276576&permissions=117760&integration_type=0&scope=bot+applications.commands)
 
 Amano is a Discord bot used for automated replies and a set of fun utility commands. It was built with Node.js, discord.js, and Sequelize (SQLite in development). The bot can run locally, be deployed in Docker, or run in other Node.js-compatible environments.
 
