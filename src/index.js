@@ -2,13 +2,18 @@ import "./config.js";
 import process from "node:process";
 import { URL } from "node:url";
 import { Client, GatewayIntentBits, Partials } from "discord.js";
-import { dbShutdown } from "./db/db.js";
+import { dbShutdown, sequelize } from "./db/db.js";
 import { initDB } from "./db/dbInit.js";
+import ChannelService from "./services/channelService.js";
+import serviceContainer from "./services/serviceContainer.js";
 import { loadCommands, loadEvents } from "./util/loaders.js";
 import { registerEvents } from "./util/registerEvents.js";
 
 // Initialize the DB
 await initDB();
+
+// Initialize services
+serviceContainer.register("channelService", new ChannelService(sequelize.models.Channel));
 
 // Initialize the client
 const client = new Client({

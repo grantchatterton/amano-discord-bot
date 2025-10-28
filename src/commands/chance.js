@@ -7,7 +7,7 @@ import {
 	PermissionFlagsBits,
 	PermissionsBitField,
 } from "discord.js";
-import { channelService } from "../services/channelService.js";
+import serviceContainer from "../services/serviceContainer.js";
 
 /** @type {import('./index.js').Command} */
 export default {
@@ -50,6 +50,7 @@ export default {
 		await interaction.deferReply();
 
 		try {
+			const channelService = serviceContainer.resolve("channelService");
 			await channelService.setChannelReplyChance(channel.id, chance);
 			return await interaction.editReply(`Reply chance for ${channelLink(channel.id)} set to ${bold(chance + "%")}.`);
 		} catch (error) {

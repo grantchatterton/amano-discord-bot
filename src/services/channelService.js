@@ -1,29 +1,36 @@
 import { Collection } from "discord.js";
-import { sequelize } from "../db/db.js";
+import serviceContainer from "./serviceContainer.js";
 
-const Channel = sequelize.models.Channel;
+export default class ChannelService {
+	#channelModel;
 
-const channelCollection = new Collection();
+	#channelCollection;
 
-export const channelService = {
+	constructor(channelModel) {
+		this.#channelModel = channelModel;
+		this.#channelCollection = new Collection();
+	}
+
 	async getChannel(channelId) {
-		if (!channelCollection.has(channelId)) {
-			const [channel] = await Channel.findOrCreate({ where: { channelId }, defaults: { channelId } });
-			channelCollection.set(channelId, channel);
+		if (!this.#channelCollection.has(channelId)) {
+			const [channel] = await this.#channelModel.findOrCreate({ where: { channelId }, defaults: { channelId } });
+			this.#channelCollection.set(channelId, channel);
 			return channel;
 		}
 
-		return channelCollection.get(channelId);
-	},
+		return this.#channelCollection.get(channelId);
+	}
+
 	async getChannelReplyChance(channelId) {
 		const channel = await this.getChannel(channelId);
 		return channel.replyChance;
-	},
+	}
+
 	async setChannelReplyChance(channelId, replyChance) {
 		const channel = await this.getChannel(channelId);
 		channel.replyChance = replyChance;
 		await channel.save();
-	},
-};
+	}
+}
 
-export default channelService;
+export const channelService = serviceContainer.resolve("channelService");

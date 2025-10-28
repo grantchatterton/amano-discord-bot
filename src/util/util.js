@@ -2,8 +2,8 @@ import { AttachmentBuilder } from "discord.js";
 import AmanoImages from "../images.js";
 import { openAI } from "../openai/openai.js";
 import { AMANO_QUOTES } from "../quotes.js";
-import { channelService } from "../services/channelService.js";
 import { messageService } from "../services/messageService.js";
+import serviceContainer from "../services/serviceContainer.js";
 import { userService } from "../services/userService.js";
 import { SWEAR_PATTERNS } from "../swears.js";
 
@@ -212,6 +212,7 @@ export async function getMessageReply(message) {
 
 	// Fetch the replyChance for the channel the message was sent in
 	// We want to check if we should reply based on it
+	const channelService = serviceContainer.resolve("channelService");
 	const replyChance = await channelService.getChannelReplyChance(message.channelId);
 	if (!(getRandomInt(1, 100) <= replyChance)) {
 		return false;
