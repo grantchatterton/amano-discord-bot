@@ -17,27 +17,14 @@ jobs:
 
       - name: Determine Version Tag
         id: version_tag
-        uses: actions/github-script@v6
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            const core = require('@actions/core');
-            const ref = process.env.GITHUB_REF;
-            if (ref && ref.startsWith('refs/tags/')) {
-              const tag = ref.replace('refs/tags/', '');
-              core.exportVariable('VERSION_TAG', tag);
-              core.setOutput('version_tag', tag);
-              console.log(`Using tag from event ref: ${tag}`);
-            } else {
-              const { data: release } = await github.rest.repos.getLatestRelease({
-                owner: context.repo.owner,
-                repo: context.repo.repo
-              });
-              const tag = release.tag_name;
-              core.exportVariable('VERSION_TAG', tag);
-              core.setOutput('version_tag', tag);
-              console.log(`Fetched latest release tag: ${tag}`);
-            }
+        run: |
+          if [[ "$GITHUB_REF" == refs/tags/* ]]; then
+            VERSION_TAG="${GITHUB_REF#refs/tags/}"
+          else
+            VERSION_TAG=$(curl -s https://api.github.com/repos/${{ github.repository }}/releases/latest | jq -r .tag_name)
+          fi
+          echo "VERSION_TAG=$VERSION_TAG" >> $GITHUB_ENV
+          echo "Using version tag: $VERSION_TAG"
 
       - name: Login to Docker Hub
         uses: docker/login-action@v3
@@ -55,7 +42,9 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           push: true
-          tags: ${{ vars.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}:${{ env.VERSION_TAG }}
+          tags: |
+            ${{ vars.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}:${{ env.VERSION_TAG }}
+            ${{ vars.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}:latest
 
   deploy-production:
     name: Deploy to Production Server
