@@ -44,7 +44,6 @@ jobs:
           push: true
           tags: |
             ${{ vars.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}:${{ env.VERSION_TAG }}
-            ${{ vars.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}:latest
 
   deploy-production:
     name: Deploy to Production Server
