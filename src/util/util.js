@@ -96,7 +96,7 @@ export async function getAIReply(message) {
 	try {
 		const messageService = serviceContainer.resolve("messageService");
 		const userService = serviceContainer.resolve("userService");
-	
+
 		const messages = await messageService.getMessages(message.guildId);
 		const userMessage = { role: "user", content: message.content };
 

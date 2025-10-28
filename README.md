@@ -121,6 +121,7 @@ docker run --env-file .env \
 ```
 
 Notes
+
 - You normally do not need to expose ports for a Discord bot unless it runs a web/health endpoint — if so, add `-p <host_port>:<container_port>`.
 - View logs: `docker logs -f amano-discord-bot`
 - Enter a running container shell: `docker exec -it amano-discord-bot sh` (or `bash`)
@@ -133,7 +134,7 @@ Notes
 - OPENAI_API_KEY — (required) OpenAI API key
 - NODE_ENV — (optional) set to `production` in production; default is `development`
 - MAX_MESSAGE_LIMIT — (optional) used by message service (integer)
-- DB_* variables — only required if you run with a production database (see `src/db/db.js`)
+- DB\_\* variables — only required if you run with a production database (see `src/db/db.js`)
 
 ## Registering commands
 
