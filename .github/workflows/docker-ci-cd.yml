@@ -4,6 +4,12 @@ on:
   release:
     types: [published]
   workflow_dispatch: # Allow manual triggers
+    inputs:
+      build_and_push:
+        description: "Build and push latest release image?"
+        required: false
+        type: boolean
+        default: true
 
 jobs:
   deploy-docker:
