@@ -135,7 +135,6 @@ jobs:
         env:
           DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}
           APPLICATION_ID: ${{ secrets.APPLICATION_ID }}
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: npm run deploy
 
       - name: Login to Docker Hub
