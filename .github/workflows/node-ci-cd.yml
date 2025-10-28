@@ -4,9 +4,19 @@ on:
   push:
     branches:
       - main
+    paths:
+      - "src/**/*.js"
+      - "package.json"
+      - "package-lock.json"
+      - ".github/workflows/node-ci-cd.yml"
   pull_request:
     branches:
       - main
+    paths:
+      - "src/**/*.js"
+      - "package.json"
+      - "package-lock.json"
+      - ".github/workflows/node-ci-cd.yml"
   workflow_dispatch: # Allow manual triggers
 
 jobs:
@@ -18,6 +28,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          token: ${{ secrets.PA_TOKEN }} # Use PA_TOKEN for push access
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -34,6 +45,7 @@ jobs:
         run: npm run format
 
       - name: Commit files
+        if: github.event_name == 'push' # Only auto-commit on direct pushes to main
         run: |
           git config --local user.name "github-actions[bot]"
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
@@ -41,9 +53,10 @@ jobs:
           git commit -m "style: auto-format code" || echo "No changes to commit"
 
       - name: Push changes
+        if: github.event_name == 'push'
         uses: ad-m/github-push-action@master
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          github_token: ${{ secrets.PA_TOKEN }}
           force: true
 
   commit-lint:
@@ -81,6 +94,7 @@ jobs:
   release:
     name: Generate Release
     needs: commit-lint
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     permissions:
       contents: write # to be able to publish a GitHub release
