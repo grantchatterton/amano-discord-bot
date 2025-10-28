@@ -1,5 +1,5 @@
 import { ApplicationCommandOptionType, bold } from "discord.js";
-import { userService } from "../services/userService.js";
+import serviceContainer from "../services/serviceContainer.js";
 
 /** @type {import('./index.js').Command} */
 export default {
@@ -21,6 +21,7 @@ export default {
 		await interaction.deferReply({ ephemeral: true });
 
 		try {
+			const userService = serviceContainer.resolve("userService");
 			const user = await userService.getUser(interaction.member.id);
 			if (status !== null && user.trackMessages !== status) {
 				user.trackMessages = status;

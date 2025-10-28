@@ -3,7 +3,6 @@ import AmanoImages from "../images.js";
 import { openAI } from "../openai/openai.js";
 import { AMANO_QUOTES } from "../quotes.js";
 import serviceContainer from "../services/serviceContainer.js";
-import { userService } from "../services/userService.js";
 import { SWEAR_PATTERNS } from "../swears.js";
 
 /**
@@ -96,6 +95,8 @@ export function getGenericMessageReply() {
 export async function getAIReply(message) {
 	try {
 		const messageService = serviceContainer.resolve("messageService");
+		const userService = serviceContainer.resolve("userService");
+	
 		const messages = await messageService.getMessages(message.guildId);
 		const userMessage = { role: "user", content: message.content };
 
