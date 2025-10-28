@@ -14,6 +14,20 @@ I plan on updating this application in the future to support customization for w
 - Slash commands (see `src/commands/`)
 - OpenAI integration for advanced replies (requires `OPENAI_API_KEY`)
 
+## Commands
+
+<!-- BEGIN COMMANDS SECTION -->
+
+| Name    | Description                                                              |
+| ------- | ------------------------------------------------------------------------ |
+| /chance | Set the chance of replying to a message containing a swear for a channel |
+| /meme   | Send a random meme                                                       |
+| /ping   | Pong!                                                                    |
+| /roll   | Roll one or more dice                                                    |
+| /track  | Allows users to opt in/out of having their messages tracked              |
+
+<!-- END COMMANDS SECTION -->
+
 ## Prerequisites
 
 - Node.js 18+ (recommended)
