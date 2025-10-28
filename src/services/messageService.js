@@ -39,7 +39,7 @@ export default class MessageService {
 
 	async getSummary(messages) {
 		const response = await this.#openAIClient.chat.completions.create({
-			model: "gpt-4o-mini",
+			model: "gpt-4o",
 			max_tokens: 300,
 			response_format: { type: "json_object" },
 			messages: [
