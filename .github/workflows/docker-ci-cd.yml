@@ -42,8 +42,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           push: true
-          tags: |
-            ${{ vars.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}:${{ env.VERSION_TAG }}
+          tags: ${{ vars.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}:${{ env.VERSION_TAG }},${{ vars.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}:latest
 
   deploy-production:
     name: Deploy to Production Server
