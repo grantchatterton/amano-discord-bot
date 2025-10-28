@@ -1,6 +1,5 @@
 import { AttachmentBuilder } from "discord.js";
 import AmanoImages from "../images.js";
-import { openAI } from "../openai/openai.js";
 import { AMANO_QUOTES } from "../quotes.js";
 import serviceContainer from "../services/serviceContainer.js";
 import { SWEAR_PATTERNS } from "../swears.js";
@@ -94,6 +93,7 @@ export function getGenericMessageReply() {
  */
 export async function getAIReply(message) {
 	try {
+		const openAI = serviceContainer.resolve("openAI");
 		const messageService = serviceContainer.resolve("messageService");
 		const userService = serviceContainer.resolve("userService");
 
