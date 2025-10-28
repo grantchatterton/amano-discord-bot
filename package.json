@@ -5,6 +5,7 @@
 	"private": true,
 	"type": "module",
 	"scripts": {
+		"docs:commands": "node src/util/generateCmdDocs.js",
 		"lint": "eslint --ext .js,.mjs,.cjs src",
 		"lint:fix": "eslint --ext .js,.mjs,.cjs --fix src",
 		"format": "prettier --write .",
