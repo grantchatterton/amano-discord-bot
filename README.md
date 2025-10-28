@@ -11,7 +11,7 @@ I plan on updating this application in the future to support customization for w
 ## Features
 
 - Automatic replies to messages containing configured swear words with a configurable chance
-- Slash commands (see `src/commands/`)
+- Slash commands (see Commands below)
 - OpenAI integration for advanced replies (requires `OPENAI_API_KEY`)
 
 ## Commands
