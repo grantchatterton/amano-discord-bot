@@ -7,8 +7,4 @@ export const AMANO_SAD = ["https://static.wikia.nocookie.net/aceattorney/images/
 export const AMANO_ANGRY = ["https://static.wikia.nocookie.net/aceattorney/images/c/cc/Ernest_Angry_2.gif"];
 export const AMANO_SWEATING = ["https://static.wikia.nocookie.net/aceattorney/images/5/58/Ernest_Sweating_2.gif"];
 
-// testing formatting for workflow
-// check
-// 123
-
 export default { AMANO_NORMAL, AMANO_PLACATING, AMANO_SAD, AMANO_ANGRY, AMANO_SWEATING };
