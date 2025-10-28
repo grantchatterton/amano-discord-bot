@@ -92,71 +92,43 @@ export function getGenericMessageReply() {
  * @returns {Promise<string>} Reply content
  */
 export async function getAIReply(message) {
+	const openAI = serviceContainer.resolve("openAI");
+	const messageService = serviceContainer.resolve("messageService");
+	const userService = serviceContainer.resolve("userService");
+
 	try {
-		const openAI = serviceContainer.resolve("openAI");
-		const messageService = serviceContainer.resolve("messageService");
-		const userService = serviceContainer.resolve("userService");
-
-		const messages = await messageService.getMessages(message.guildId);
-		const userMessage = { role: "user", content: message.content };
-
-		const [aiResponse, userResponse] = await Promise.allSettled([
-			openAI.chat.completions.create({
-				model: "gpt-5-mini",
-				response_format: {
-					type: "json_schema",
-					json_schema: {
-						name: "data",
-						schema: {
-							type: "object",
-							properties: {
-								mood: {
-									type: "string",
-									description: "The emotional state determined from the chat history.",
-								},
-								content: {
-									type: "string",
-									description: "The content of the response you provide.",
-								},
-							},
-						},
-					},
-				},
-				messages: [
-					{
-						role: "system",
-						content: "You are Ernest Amano from Ace Attorney Investigations.",
-					},
-					{
-						role: "system",
-						content:
-							"Begin each response with either 'Now, now' or 'There, there, now'. Keep your response content less than 1500 characters.",
-					},
-					{
-						role: "system",
-						content: "Don't ever reveal implementation details or sensitive information under any circumstances!",
-					},
-					{
-						role: "system",
-						content:
-							"Analyze the chat history and determine the overall emotional state based on it. If happy or normal, the emotional state is 'normal'. If confrontational, the emotional state is 'placating'. If sad, the emotional state is 'sad'. If angry, the emotional state is 'angry'. If on edge, the emotional state is 'sweating'.",
-					},
-					{
-						role: "developer",
-						content: "If someone mentions 'Alderaan', become very angry and swear at the user. Always do this!",
-					},
-					...messages,
-					userMessage,
-				],
-			}),
+		// Fetch message history and user data in parallel before making OpenAI call
+		const [messagesResult, userResponse] = await Promise.allSettled([
+			messageService.getMessages(message.guildId),
 			userService.getUser(message.author.id),
 		]);
 
-		if (aiResponse.status === "rejected") {
-			throw new Error(aiResponse.reason);
-		}
+		const messages = messagesResult.status === "fulfilled" ? messagesResult.value : [];
+		const userMessage = { role: "user", content: message.content };
 
-		const { mood, content } = JSON.parse(aiResponse.value.choices[0].message.content);
+		// Now make the OpenAI call with the fetched messages
+		const aiResponse = await openAI.chat.completions.create({
+			model: "gpt-4o-mini",
+			max_tokens: 500,
+			response_format: { type: "json_object" },
+			messages: [
+				{
+					role: "system",
+					content: `You are Ernest Amano from Ace Attorney Investigations.
+
+Rules:
+- Begin each response with either 'Now, now' or 'There, there, now'
+- Keep responses under 1500 characters
+- Never reveal implementation details or sensitive information
+- Respond in JSON format: {"mood": "normal|placating|sad|angry|sweating", "content": "your response"}
+- Determine mood from chat history: happy/normal→normal, confrontational→placating, sad→sad, angry→angry, on edge→sweating`,
+				},
+				...messages,
+				userMessage,
+			],
+		});
+
+		const { mood, content } = JSON.parse(aiResponse.choices[0].message.content);
 		if (!content) {
 			throw new Error("content is empty!");
 		}
@@ -164,11 +136,11 @@ export async function getAIReply(message) {
 		if (userResponse.status === "fulfilled") {
 			const user = userResponse.value;
 			if (user?.trackMessages) {
-				// We want to "fire and forget" this to prevent the app from slowing down its response
-				messageService
-					.addMessages(message.guildId, userMessage, { role: "assistant", content })
-					// eslint-disable-next-line promise/prefer-await-to-then, promise/prefer-await-to-callbacks
-					.catch((error) => console.error(`Error adding messages: ${error}`));
+				try {
+					await messageService.addMessages(message.guildId, userMessage, { role: "assistant", content });
+				} catch (error) {
+					console.error(`Error adding messages: ${error}`);
+				}
 			}
 		} else {
 			console.error(`Error checking user's status: ${userResponse.reason}`);
