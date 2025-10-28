@@ -143,7 +143,7 @@ npm run deploy
 
 This uses `src/util/deploy.js` and requires `DISCORD_TOKEN` and `APPLICATION_ID` in your environment.
 
-## Inviting the bot to a Discord server
+## Inviting the bot to a Discord server (self hosted)
 
 1. Get your Application (Client) ID:
    - From the Discord Developer Portal (Applications → your app) or from your local `.env.*` as `APPLICATION_ID`.
