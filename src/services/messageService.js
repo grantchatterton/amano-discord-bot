@@ -21,16 +21,7 @@ export default class MessageService {
 	}
 
 	async getMessages(guildId) {
-		await this.#mutex.lock();
-
-		try {
-			return await this.getMessagesUtil(guildId);
-		} catch (error) {
-			console.error(`Error fetching messages for guild: ${error}`);
-			throw error;
-		} finally {
-			this.#mutex.release();
-		}
+		return this.getMessagesUtil(guildId);
 	}
 
 	async addMessages(guildId, ...messages) {
@@ -48,30 +39,14 @@ export default class MessageService {
 
 	async getSummary(messages) {
 		const response = await this.#openAIClient.chat.completions.create({
-			model: "gpt-5",
-			response_format: {
-				type: "json_schema",
-				json_schema: {
-					name: "data",
-					schema: {
-						type: "object",
-						properties: {
-							content: {
-								type: "string",
-								description: "The content of the summary.",
-							},
-							mimic: {
-								type: "string",
-								description: "Who or what the user may have instructed you to talk like (if applicable).",
-							},
-						},
-					},
-				},
-			},
+			model: "gpt-4o-mini",
+			max_tokens: 300,
+			response_format: { type: "json_object" },
 			messages: [
 				{
 					role: "system",
-					content: "You are a helpful assistant who summarizes a message history and responds in JSON format.",
+					content:
+						"You are a helpful assistant who summarizes message history. Respond in JSON format with 'content' (the summary) and 'mimic' (who/what the user asked you to talk like, if applicable) fields.",
 				},
 				...messages,
 			],
@@ -103,53 +78,55 @@ export default class MessageService {
 			}
 
 			this.#messageCollection.set(guildId, messageDataToCreate);
-			return { ...messageDataToCreate };
 		}
 
-		const messageData = this.#messageCollection.get(guildId);
-		return { ...messageData };
+		// Return reference (not copy) so mutations are reflected
+		return this.#messageCollection.get(guildId);
 	}
 
 	async getMessagesUtil(guildId) {
 		const messageData = await this.getMessageData(guildId);
 		const messages = [];
+
+		// Add summary as context if available
 		if (messageData.summary) {
 			messages.push({
-				role: "developer",
-				content: `Here's a summary of the past chat history. Use it as a reference: ${messageData.summary}`,
+				role: "system",
+				content: `Previous conversation summary: ${messageData.summary}`,
 			});
 		}
 
+		// Add mimic instruction if user specified one
 		if (messageData.mimic) {
 			messages.push({
-				role: "developer",
-				content: `Talk like you are ${messageData.mimic}, though maintain your persona as Ernest Amano.`,
+				role: "system",
+				content: `Additional instruction: Also imitate the speech style of ${messageData.mimic}, while maintaining your Ernest Amano persona.`,
 			});
 		}
 
+		// Return copy of messages array to prevent external mutations
 		return [...messages, ...messageData.messages];
 	}
 
 	async saveSummary(guildId, messages, force = false) {
+		// Get reference to cached data (protected by mutex in addMessages)
 		const messageData = await this.getMessageData(guildId);
 		const newMessages = [...messageData.messages, ...messages];
+
 		if (newMessages.length > 0 && (newMessages.length >= this.#maxMessageLimit || force)) {
 			try {
 				const summaryMessages = messageData.summary
-					? [{ role: "developer", content: messageData.summary }, ...newMessages]
+					? [{ role: "system", content: `Previous summary: ${messageData.summary}` }, ...newMessages]
 					: newMessages;
 				const summary = await this.getSummary(summaryMessages);
 				if (!summary.content) {
 					throw new Error("summary.content is undefined!");
 				}
 
-				const newMessageData = {
-					messages: [],
-					summary: summary.content,
-					mimic: summary.mimic,
-				};
-
-				this.#messageCollection.set(guildId, newMessageData);
+				// Update cache atomically (we're inside mutex lock from addMessages)
+				messageData.messages = [];
+				messageData.summary = summary.content;
+				messageData.mimic = summary.mimic;
 
 				try {
 					// use upsert to reduce round trips (single statement)
@@ -159,16 +136,12 @@ export default class MessageService {
 				}
 			} catch (error) {
 				console.error(`Error while saving summary: ${error}`);
-				this.#messageCollection.set(guildId, {
-					...messageData,
-					messages: newMessages,
-				});
+				// On error, keep accumulated messages (don't lose data)
+				messageData.messages = newMessages;
 			}
 		} else {
-			this.#messageCollection.set(guildId, {
-				...messageData,
-				messages: newMessages,
-			});
+			// Haven't reached limit yet, just accumulate messages
+			messageData.messages = newMessages;
 		}
 	}
 }
