@@ -50,10 +50,11 @@ jobs:
         with:
           push: true
           tags: ${{ vars.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}:${{ env.VERSION_TAG }},${{ vars.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}:latest
-
+          
   deploy-production:
     name: Deploy to Production Server
     needs: deploy-docker
+    if: ${{ always() && (needs.deploy-docker.result == 'success' || needs.deploy-docker.result == 'skipped') }}
     runs-on: ubuntu-latest
     steps:
       - name: Restart/redeploy the app on the VPS
