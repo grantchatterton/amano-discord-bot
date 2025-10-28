@@ -84,8 +84,8 @@ jobs:
 
   release:
     name: Release
+    needs: [commit-lint, lint-and-format]
     if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
-    needs: lint-and-format
     runs-on: ubuntu-latest
     permissions:
       contents: write # to be able to publish a GitHub release
@@ -116,7 +116,8 @@ jobs:
 
   deploy:
     name: Deploy the App to Production
-    needs: release
+    needs: lint-and-format
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
