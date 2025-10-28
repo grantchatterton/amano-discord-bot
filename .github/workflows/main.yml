@@ -87,8 +87,6 @@ jobs:
     if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     needs: lint-and-format
     runs-on: ubuntu-latest
-    outputs:
-      new_release_published: ${{ steps.semantic_release.outputs.new_release_published }}
     permissions:
       contents: write # to be able to publish a GitHub release
       issues: write # to be able to comment on released issues
@@ -120,7 +118,6 @@ jobs:
     name: Deploy the App to Production
     needs: release
     runs-on: ubuntu-latest
-    if: needs.release.outputs.new_release_published == 'true'
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
