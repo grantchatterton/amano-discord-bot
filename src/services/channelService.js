@@ -1,5 +1,4 @@
 import { Collection } from "discord.js";
-import serviceContainer from "./serviceContainer.js";
 
 export default class ChannelService {
 	#channelModel;
@@ -32,5 +31,3 @@ export default class ChannelService {
 		await channel.save();
 	}
 }
-
-export const channelService = serviceContainer.resolve("channelService");
