@@ -1,6 +1,6 @@
 # Amano Discord Bot
 
-Amano is a Discord bot used for automated replies and a set of fun utility commands. It was built with Node.js, discord.js, and Sequelize (SQLite in development). The bot can run locally, be deployed with Docker, and register application commands with Discord.
+Amano is a Discord bot used for automated replies and a set of fun utility commands. It was built with Node.js, discord.js, and Sequelize (SQLite in development). The bot can run locally, be deployed in Docker, or run in other Node.js-compatible environments.
 
 ## Features
 
@@ -50,6 +50,8 @@ Notes:
 npm run deploy
 ```
 
+This uses `src/util/deploy.js` and requires `DISCORD_TOKEN` and `APPLICATION_ID` in your environment.
+
 4. Start the bot
 
 ```bash
@@ -71,6 +73,53 @@ docker compose up --build
 
 When running in Docker you should supply environment variables via a `.env` file or the compose file.
 
+### Run with Docker (without docker-compose)
+
+Build the image from the project root:
+
+```bash
+docker build -t amano-discord-bot:latest .
+```
+
+Run the container using an .env file (recommended):
+
+1. Create a `.env` file in the project root with the required environment variables (e.g. `DISCORD_TOKEN=...` and any other variables the bot needs).
+2. Start the container:
+
+```bash
+docker run --env-file .env \
+  --name amano-discord-bot \
+  --restart unless-stopped \
+  -d amano-discord-bot:latest
+```
+
+Or run by passing environment variables directly:
+
+```bash
+docker run -e DISCORD_TOKEN=your_token \
+  -e APPLICATION_ID=your_application_id \
+  -e OPENAI_API_KEY=your_openai_key \
+  --name amano-discord-bot \
+  --restart unless-stopped \
+  -d amano-discord-bot:latest
+```
+
+Mount local data if the bot needs persistent storage or config files:
+
+```bash
+docker run --env-file .env \
+  -v "$(pwd)/data":/app/data \
+  --name amano-discord-bot \
+  --restart unless-stopped \
+  -d amano-discord-bot:latest
+```
+
+Notes
+- You normally do not need to expose ports for a Discord bot unless it runs a web/health endpoint — if so, add `-p <host_port>:<container_port>`.
+- View logs: `docker logs -f amano-discord-bot`
+- Enter a running container shell: `docker exec -it amano-discord-bot sh` (or `bash`)
+- Stop & remove: `docker stop amano-discord-bot && docker rm amano-discord-bot`
+
 ## Environment variables reference
 
 - DISCORD_TOKEN — (required) the bot token from Discord Developer Portal
@@ -78,7 +127,7 @@ When running in Docker you should supply environment variables via a `.env` file
 - OPENAI_API_KEY — (required) OpenAI API key
 - NODE_ENV — (optional) set to `production` in production; default is `development`
 - MAX_MESSAGE_LIMIT — (optional) used by message service (integer)
-- DB\_\* variables — only required if you run with a production database (see `src/db/db.js`)
+- DB_* variables — only required if you run with a production database (see `src/db/db.js`)
 
 ## Registering commands
 
