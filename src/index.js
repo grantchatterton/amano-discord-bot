@@ -1,10 +1,10 @@
 import process from "node:process";
 import { URL } from "node:url";
 import { Client, GatewayIntentBits, Partials } from "discord.js";
+import OpenAI from "openai";
 import { MAX_MESSAGE_LIMIT } from "./config.js";
 import { sequelize } from "./db/db.js";
 import { initDB } from "./db/dbInit.js";
-import { openAI } from "./openai/openai.js";
 import ChannelService from "./services/channelService.js";
 import MessageService from "./services/messageService.js";
 import serviceContainer from "./services/serviceContainer.js";
@@ -16,8 +16,13 @@ import { registerEvents } from "./util/registerEvents.js";
 await initDB();
 
 // Initialize services
+serviceContainer.register("openAI", new OpenAI({ apiKey: process.env.OPENAI_API_KEY }));
+
 serviceContainer.register("channelService", new ChannelService(sequelize.models.Channel));
-serviceContainer.register("messageService", new MessageService(sequelize.models.Message, openAI, MAX_MESSAGE_LIMIT));
+serviceContainer.register(
+	"messageService",
+	new MessageService(sequelize.models.Message, serviceContainer.resolve("openAI"), MAX_MESSAGE_LIMIT),
+);
 serviceContainer.register("userService", new UserService(sequelize.models.User));
 
 // Initialize the client
