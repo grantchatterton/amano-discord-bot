@@ -1,3 +1,14 @@
+## [1.8.1](https://github.com/grantchatterton/amano-discord-bot/compare/v1.8.0...v1.8.1) (2025-10-29)
+
+
+### Bug Fixes
+
+* **ci-cd:** ensure lint-and-format job runs only on pull requests ([89a1593](https://github.com/grantchatterton/amano-discord-bot/commit/89a159309fefddeab0d2356b4c2de9af3c1a6bd3))
+* **ci-cd:** remove conditional for commit-lint job to always run ([2f23f8b](https://github.com/grantchatterton/amano-discord-bot/commit/2f23f8ba309a2b7737af3265d7a459b965267dc6))
+* **ci-cd:** remove unnecessary conditionals and standardize npm install command ([57930e7](https://github.com/grantchatterton/amano-discord-bot/commit/57930e7a9471a0adef2ae1f8e16ebd37516f7df4))
+* **ci-cd:** standardize npm install command to use npm ci ([59c1dfe](https://github.com/grantchatterton/amano-discord-bot/commit/59c1dfeecd616c77b64012109a9343fc266c7863))
+* **commands:** remove unused bar command implementation ([#9](https://github.com/grantchatterton/amano-discord-bot/issues/9)) ([66f6462](https://github.com/grantchatterton/amano-discord-bot/commit/66f64629092e9c1340d3d3c7129838993869904a))
+
 # [1.8.0](https://github.com/grantchatterton/amano-discord-bot/compare/v1.7.0...v1.8.0) (2025-10-29)
 
 
