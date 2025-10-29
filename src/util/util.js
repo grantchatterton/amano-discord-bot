@@ -96,18 +96,16 @@ export async function getAIReply(message) {
 	const messageService = serviceContainer.resolve("messageService");
 	const userService = serviceContainer.resolve("userService");
 
-// Fetch message history and user data in parallel before making OpenAI call
-		const [messagesResult, userResponse] = await Promise.allSettled([
-			messageService.getMessages(message.guildId),
-			userService.getUser(message.author.id),
-		]);
+	// Fetch message history and user data in parallel before making OpenAI call
+	const [messagesResult, userResponse] = await Promise.allSettled([
+		messageService.getMessages(message.guildId),
+		userService.getUser(message.author.id),
+	]);
 
-		const messages = messagesResult.status === "fulfilled" ? messagesResult.value : [];
-		const userMessage = { role: "user", content: message.content };
-	
+	const messages = messagesResult.status === "fulfilled" ? messagesResult.value : [];
+	const userMessage = { role: "user", content: message.content };
+
 	try {
-		
-
 		// Now make the OpenAI call with the fetched messages
 		const aiResponse = await openAI.chat.completions.create({
 			model: "gpt-4o-mini",
