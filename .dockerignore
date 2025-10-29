@@ -5,9 +5,10 @@
 .misc
 .prettierrc.json
 .vscode
-README.md
 .github
-node_modules
-secrets
+node_modules/
+secrets/
 src/util/deploy.js
 src/util/generateCmdDocs.js
+tests/
+README.md
