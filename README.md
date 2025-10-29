@@ -37,6 +37,32 @@ I plan on updating this application in the future to support customization for w
 - A Discord application and bot token (from the Discord Developer Portal)
 - OpenAI API key
 
+## Obtaining an OpenAI API Key
+
+To use Amano's AI-powered features, you'll need an OpenAI API key. Follow these steps to obtain one:
+
+1. **Create an OpenAI account**
+   - Visit [https://platform.openai.com/signup](https://platform.openai.com/signup)
+   - Sign up for a new account or log in if you already have one
+   - Note: You may need to verify your email address and provide a phone number
+
+2. **Navigate to the API keys section**
+   - Once logged in, go to [https://platform.openai.com/api-keys](https://platform.openai.com/api-keys)
+   - Or click on your profile icon in the top-right corner and select "API keys" from the menu
+
+3. **Generate a new API key**
+   - Click the "+ Create new secret key" button
+   - Give your key a descriptive name (e.g., "Amano Discord Bot")
+   - Click "Create secret key"
+   - **Important**: Copy the key immediately and store it securely — you won't be able to see it again
+   - If you lose the key, you'll need to generate a new one
+
+4. **Add the key to your environment configuration**
+   - Add the key to your `.env.development` file (see Quick start below)
+   - Never commit API keys to version control or share them publicly
+
+**Note**: OpenAI API usage is billed based on consumption. Make sure to review [OpenAI's pricing](https://openai.com/pricing) and set up billing limits in your account settings to avoid unexpected charges.
+
 ## Quick start — run locally
 
 1. Install dependencies
