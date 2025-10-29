@@ -1,12 +1,9 @@
 {
 	"$schema": "https://json.schemastore.org/package.json",
 	"name": "amano-discord-bot",
-	"version": "1.9.7",
+	"version": "1.0.0",
 	"private": true,
 	"type": "module",
-	"engines": {
-		"node": ">=18.0.0"
-	},
 	"scripts": {
 		"docs:commands": "node src/util/generateCmdDocs.js",
 		"lint": "eslint --ext .js,.mjs,.cjs src",
