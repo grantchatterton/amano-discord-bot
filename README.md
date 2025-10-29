@@ -21,7 +21,6 @@ I plan on updating this application in the future to support customization for w
 
 | Name    | Description                                                              |
 | ------- | ------------------------------------------------------------------------ |
-| /bar    | Responds with bar                                                        |
 | /chance | Set the chance of replying to a message containing a swear for a channel |
 | /foo    | Responds with bar                                                        |
 | /meme   | Send a random meme                                                       |
