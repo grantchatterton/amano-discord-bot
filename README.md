@@ -41,33 +41,33 @@ I plan on updating this application in the future to support customization for w
 
 To run Amano, you'll need to create a Discord application and bot through the Discord Developer Portal. Follow these steps to obtain your bot token and application ID:
 
-1. **Log in to the Discord Developer Portal**
+**1. Log in to the Discord Developer Portal**
    - Visit [https://discord.com/developers/applications](https://discord.com/developers/applications)
    - Log in with your Discord account
    - If you don't have a Discord account, you'll need to create one first at [https://discord.com](https://discord.com)
 
-2. **Create a new application**
+**2. Create a new application**
    - Click the "New Application" button in the top-right corner
    - Enter a name for your application (e.g., "Amano Bot" or "My Ernest Bot")
    - Read and accept Discord's Terms of Service and Developer Policy
    - Click "Create"
 
-3. **Copy your Application ID**
+**3. Copy your Application ID**
    - On the "General Information" page, you'll see your "Application ID" (also called Client ID)
    - Click "Copy" to copy this ID — you'll need it for the `APPLICATION_ID` environment variable
    - Keep this page open as you'll need to come back to it
 
-4. **Create a bot**
+**4. Create a bot**
    - In the left sidebar, click on "Bot"
    - Click the "Add Bot" button (or "Reset Token" if a bot already exists)
    - Confirm by clicking "Yes, do it!" when prompted
 
-5. **Configure bot settings**
+**5. Configure bot settings**
    - Under "Privileged Gateway Intents", enable the following:
      - **Message Content Intent** (required for the bot to read message content)
    - Save changes if prompted
 
-6. **Retrieve your bot token**
+**6. Retrieve your bot token**
    - In the "Bot" section, find the "TOKEN" section
    - Click "Reset Token" (if this is your first time, it may say "Copy" instead)
    - Click "Yes, do it!" to confirm if prompted
@@ -75,7 +75,7 @@ To run Amano, you'll need to create a Discord application and bot through the Di
    - **Important**: Store this token securely — you won't be able to see it again
    - If you lose the token, you'll need to reset it and update your environment configuration
 
-7. **Add the token and Application ID to your environment configuration**
+**7. Add the token and Application ID to your environment configuration**
    - Add both values to your `.env` file (see Quick start below)
    - Never commit bot tokens to version control or share them publicly
    - Anyone with your bot token can control your bot
@@ -89,23 +89,23 @@ To run Amano, you'll need to create a Discord application and bot through the Di
 
 To use Amano's AI-powered features, you'll need an OpenAI API key. Follow these steps to obtain one:
 
-1. **Create an OpenAI account**
+**1. Create an OpenAI account**
    - Visit [https://platform.openai.com/signup](https://platform.openai.com/signup)
    - Sign up for a new account or log in if you already have one
    - Note: You may need to verify your email address and provide a phone number
 
-2. **Navigate to the API keys section**
+**2. Navigate to the API keys section**
    - Once logged in, go to [https://platform.openai.com/api-keys](https://platform.openai.com/api-keys)
    - Or click on your profile icon in the top-right corner and select "API keys" from the menu
 
-3. **Generate a new API key**
+**3. Generate a new API key**
    - Click the "+ Create new secret key" button
    - Give your key a descriptive name (e.g., "Amano Discord Bot")
    - Click "Create secret key"
    - **Important**: Copy the key immediately and store it securely — you won't be able to see it again
    - If you lose the key, you'll need to generate a new one
 
-4. **Add the key to your environment configuration**
+**4. Add the key to your environment configuration**
    - Add the key to your `.env` file (see Quick start below)
    - Never commit API keys to version control or share them publicly
 
@@ -113,13 +113,13 @@ To use Amano's AI-powered features, you'll need an OpenAI API key. Follow these 
 
 ## Quick start — run locally
 
-1. Install dependencies
+**1. Install dependencies**
 
 ```bash
 npm install
 ```
 
-2. Create environment file
+**2. Create environment file**
 
 The app loads environment variables from a `.env` file in the project root. You can copy the example template to get started:
 
@@ -145,7 +145,7 @@ Notes:
 - When `NODE_ENV` is not `production`, the app uses an in-memory SQLite database for development convenience.
 - For production, set `NODE_ENV=production` and configure database connection using `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_HOST`, and `DB_DIALECT` environment variables (see Environment variables reference below).
 
-3. Register slash commands (optional but recommended before first run)
+**3. Register slash commands (optional but recommended before first run)**
 
 ```bash
 npm run deploy
@@ -153,7 +153,7 @@ npm run deploy
 
 This uses `src/util/deploy.js` and requires `DISCORD_TOKEN` and `APPLICATION_ID` in your environment.
 
-4. Start the bot
+**4. Start the bot**
 
 ```bash
 npm start
@@ -186,8 +186,9 @@ docker build -t amano-discord-bot:latest .
 
 Run the container using an .env file (recommended):
 
-1. Create a `.env` file in the project root with the required environment variables (e.g. `DISCORD_TOKEN=...` and any other variables the bot needs).
-2. Start the container:
+**1. Create a `.env` file in the project root with the required environment variables (e.g. `DISCORD_TOKEN=...` and any other variables the bot needs).**
+
+**2. Start the container:**
 
 ```bash
 docker run --env-file .env \
@@ -250,16 +251,16 @@ This uses `src/util/deploy.js` and requires `DISCORD_TOKEN` and `APPLICATION_ID`
 
 ## Inviting the bot to a Discord server (self hosted)
 
-1. Get your Application (Client) ID:
+**1. Get your Application (Client) ID:**
    - From the Discord Developer Portal (Applications → your app) or from your local `.env` file as `APPLICATION_ID`.
 
-2. Use the OAuth2 URL generator (recommended):
+**2. Use the OAuth2 URL generator (recommended):**
    - In the Developer Portal go to OAuth2 → URL Generator.
    - Select the scopes: `bot` and `applications.commands` (if you want slash commands).
    - Under "Bot Permissions" select the permissions your bot needs and copy the generated URL.
    - Paste the URL in your browser, choose the server, and authorize the bot (you must have Manage Server or Administrator on the target server).
 
-3. Or build the invite URL manually:
+**3. Or build the invite URL manually:**
    - Replace APPLICATION_ID and PERMISSIONS_INTEGER in the template below and open it in a browser:
      ```
      https://discord.com/oauth2/authorize?client_id=APPLICATION_ID&permissions=PERMISSIONS_INTEGER&scope=bot%20applications.commands
