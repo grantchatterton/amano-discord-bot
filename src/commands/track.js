@@ -17,11 +17,11 @@ export default {
 	},
 	async execute(interaction) {
 		const status = interaction.options.getBoolean("status");
+		const userService = serviceContainer.resolve("userService");
 
 		await interaction.deferReply({ ephemeral: true });
 
 		try {
-			const userService = serviceContainer.resolve("userService");
 			const user = await userService.getUser(interaction.member.id);
 			if (status !== null && user.trackMessages !== status) {
 				user.trackMessages = status;
