@@ -1,3 +1,12 @@
+## [1.9.7](https://github.com/grantchatterton/amano-discord-bot/compare/v1.9.6...v1.9.7) (2025-10-29)
+
+
+### Bug Fixes
+
+* **ci-cd:** enhance deploy conditions to ensure successful release before deployment ([41bbb8e](https://github.com/grantchatterton/amano-discord-bot/commit/41bbb8e427d135b6911157bee95a2ad054064df9))
+* **ci-cd:** remove path filters from push and pull_request triggers ([1450c61](https://github.com/grantchatterton/amano-discord-bot/commit/1450c617e6bc84458f9fc85abbc8eebdf6bf9c2d))
+* **test:** remove test file ([#12](https://github.com/grantchatterton/amano-discord-bot/issues/12)) ([96bde33](https://github.com/grantchatterton/amano-discord-bot/commit/96bde33d470765ea9a83b969bb8404615f5eb916))
+
 ## [1.9.6](https://github.com/grantchatterton/amano-discord-bot/compare/v1.9.5...v1.9.6) (2025-10-29)
 
 
