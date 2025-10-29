@@ -31,9 +31,6 @@ jobs:
           node-version: lts/*
           cache: npm
 
-      - name: Install commitlint
-        run: npm install -D @commitlint/cli @commitlint/config-conventional
-
       - name: Print versions
         run: |
           git --version
@@ -100,7 +97,7 @@ jobs:
   release:
     name: Create Release
     needs: test
-    if: always() && (github.event_name == 'push' && github.ref == 'refs/heads/main')
+    if: always() && github.event_name == 'push' && github.ref == 'refs/heads/main' && (needs.test.result == 'success' || needs.test.result == 'skipped')
     runs-on: ubuntu-latest
     permissions:
       contents: write # to be able to publish a GitHub release
@@ -136,9 +133,15 @@ jobs:
         run: npx semantic-release
 
   deploy-docker:
+    name: Build and Push Docker Image
     needs: release
+    if: needs.release.result == 'success'
     uses: ./.github/workflows/docker-build-deploy.yml
+    secrets: inherit
 
   deploy-discord-commands:
+    name: Deploy Discord Commands
     needs: release
+    if: needs.release.result == 'success'
     uses: ./.github/workflows/discord-cmd-deploy.yml
+    secrets: inherit
