@@ -137,8 +137,8 @@ jobs:
 
   deploy-docker:
     needs: release
-    uses: ./.github/workflows/docker-build-deploy.yml@main
+    uses: ./.github/workflows/docker-build-deploy.yml
 
   deploy-discord-commands:
     needs: release
-    uses: ./.github/workflows/discord-cmd-deploy.yml@main
+    uses: ./.github/workflows/discord-cmd-deploy.yml
