@@ -141,13 +141,13 @@ jobs:
   deploy-docker:
     name: Build and Push Docker Image
     needs: release
-    if: needs.release.outputs.new-release-published == 'true'
+    if: always() && needs.release.result == 'success' && needs.release.outputs.new-release-published == 'true'
     uses: ./.github/workflows/docker-build-deploy.yml
     secrets: inherit
 
   deploy-discord-commands:
     name: Deploy Discord Commands
     needs: release
-    if: needs.release.outputs.new-release-published == 'true'
+    if: always() && needs.release.result == 'success' && needs.release.outputs.new-release-published == 'true'
     uses: ./.github/workflows/discord-cmd-deploy.yml
     secrets: inherit
