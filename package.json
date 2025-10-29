@@ -19,7 +19,6 @@
 	},
 	"dependencies": {
 		"@discordjs/core": "^1.2.0",
-		"app-root-path": "^3.1.0",
 		"axios": "^1.12.2",
 		"discord.js": "^14.16.0",
 		"dotenv": "^16.6.1",
@@ -31,16 +30,23 @@
 		"zod": "^3.23.8"
 	},
 	"devDependencies": {
+		"@commitlint/cli": "^20.1.0",
+		"@commitlint/config-conventional": "^20.0.0",
 		"@semantic-release/changelog": "^6.0.3",
 		"@semantic-release/git": "^10.0.1",
 		"eslint": "^8.57.0",
 		"eslint-config-neon": "^0.1.62",
-		"eslint-formatter-pretty": "^6.0.1",
+		"husky": "^9.1.7",
 		"lint-staged": "^16.2.6",
 		"markdown-table-ts": "^1.0.3",
 		"prettier": "^3.6.2",
 		"semantic-release": "^25.0.1",
 		"sequelize-cli": "^6.6.3"
+	},
+	"husky": {
+		"hooks": {
+			"pre-commit": "lint-staged"
+		}
 	},
 	"lint-staged": {
 		"src/**/*.{js,mjs,cjs}": [
