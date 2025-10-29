@@ -76,7 +76,7 @@ To run Amano, you'll need to create a Discord application and bot through the Di
    - If you lose the token, you'll need to reset it and update your environment configuration
 
 7. **Add the token and Application ID to your environment configuration**
-   - Add both values to your `.env.development` file (see Quick start below)
+   - Add both values to your `.env.local` file (see Quick start below)
    - Never commit bot tokens to version control or share them publicly
    - Anyone with your bot token can control your bot
 
@@ -106,7 +106,7 @@ To use Amano's AI-powered features, you'll need an OpenAI API key. Follow these 
    - If you lose the key, you'll need to generate a new one
 
 4. **Add the key to your environment configuration**
-   - Add the key to your `.env.development` file (see Quick start below)
+   - Add the key to your `.env.local` file (see Quick start below)
    - Never commit API keys to version control or share them publicly
 
 **Note**: OpenAI API usage is billed based on consumption. Make sure to review [OpenAI's pricing](https://openai.com/pricing) and set up billing limits in your account settings to avoid unexpected charges.
@@ -121,25 +121,30 @@ npm install
 
 2. Create environment file
 
-The app loads environment variables from `.env.${NODE_ENV}` — by default `NODE_ENV` is `development`, so create a `.env.development` file in the project root.
+The app loads environment variables from `.env` (base configuration) and `.env.local` (local overrides). For local development, create a `.env.local` file in the project root with your secrets.
 
-At minimum include:
+You can copy the example file as a starting point:
+
+```bash
+cp .env.example .env.local
+```
+
+Then edit `.env.local` and add your credentials:
 
 ```
 DISCORD_TOKEN=your_bot_token_here
 APPLICATION_ID=your_application_id_here
 OPENAI_API_KEY=your_openai_key_here
-# Optional
-MAX_MESSAGE_LIMIT=20
-NODE_ENV=development
 ```
 
 Notes:
 
+- `.env` contains base configuration and safe defaults (committed to the repository).
+- `.env.local` is for secrets and local overrides (ignored by git).
 - `DISCORD_TOKEN` is required for the bot to login.
 - `APPLICATION_ID` is used when registering slash commands (`npm run deploy`).
-- When `NODE_ENV` is not `production`, the app uses an in-memory SQLite database for development convenience.
-- For production, configure database connection using `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_HOST`, and `DB_DIALECT` environment variables (see Environment variables reference below).
+- The app uses an in-memory SQLite database by default for development convenience.
+- For production, configure database connection using `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_HOST`, and `DB_DIALECT` environment variables in `.env` or via your deployment platform (see Environment variables reference below).
 
 3. Register slash commands (optional but recommended before first run)
 
@@ -168,7 +173,7 @@ Build and run using Docker Compose:
 docker compose up --build
 ```
 
-Note: The default `compose.yaml` is configured for development and loads environment variables from `.env.development`. For production deployments, modify the `compose.yaml` to use appropriate environment variables or a `.env.production` file.
+Note: The default `compose.yaml` loads environment variables from `.env` (base configuration) and `.env.local` (local overrides). Create a `.env.local` file with your secrets for local development. For production deployments, set environment variables directly in your deployment platform or use a production-specific `.env.local` file.
 
 ### Run with Docker (without docker-compose)
 
@@ -220,16 +225,31 @@ Notes
 
 ## Environment variables reference
 
-- **DISCORD_TOKEN** — (required) the bot token from Discord Developer Portal
-- **APPLICATION_ID** — (required for registering commands) your application's client id
-- **OPENAI_API_KEY** — (required) OpenAI API key for AI-generated replies
-- **NODE_ENV** — (optional) set to `production` in production; default is `development`
-- **MAX_MESSAGE_LIMIT** — (optional) maximum number of messages to track per guild for AI context; default is 20
-- **DB_NAME** — (production only) database name
-- **DB_USER** — (production only) database user
-- **DB_PASSWORD** — (production only) database password
-- **DB_HOST** — (production only) database host
-- **DB_DIALECT** — (production only) database dialect (e.g., `mysql` or `postgres`)
+The bot uses a two-file configuration system:
+
+- **`.env`** — Base configuration with safe defaults (committed to repository)
+- **`.env.local`** — Local overrides and secrets (ignored by git, for development only)
+
+### Required Variables (set in `.env.local` for development):
+
+- **DISCORD_TOKEN** — the bot token from Discord Developer Portal
+- **APPLICATION_ID** — your application's client id (required for registering commands)
+- **OPENAI_API_KEY** — OpenAI API key for AI-generated replies
+
+### Optional Variables:
+
+- **MAX_MESSAGE_LIMIT** — maximum number of messages to track per guild for AI context; default is 20
+- **NODE_ENV** — set to `production` in production environments for database selection
+
+### Database Configuration (production only):
+
+- **DB_NAME** — database name
+- **DB_USER** — database user
+- **DB_PASSWORD** — database password
+- **DB_HOST** — database host
+- **DB_DIALECT** — database dialect (e.g., `mysql` or `postgres`)
+
+**Note**: For production deployments, set environment variables through your deployment platform's interface rather than using `.env.local`.
 
 ## Registering commands
 
@@ -244,7 +264,7 @@ This uses `src/util/deploy.js` and requires `DISCORD_TOKEN` and `APPLICATION_ID`
 ## Inviting the bot to a Discord server (self hosted)
 
 1. Get your Application (Client) ID:
-   - From the Discord Developer Portal (Applications → your app) or from your local `.env.*` as `APPLICATION_ID`.
+   - From the Discord Developer Portal (Applications → your app) or from your local `.env.local` as `APPLICATION_ID`.
 
 2. Use the OAuth2 URL generator (recommended):
    - In the Developer Portal go to OAuth2 → URL Generator.

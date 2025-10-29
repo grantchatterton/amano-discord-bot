@@ -104,7 +104,7 @@ Summaries generated via OpenAI (gpt-4o-mini, `max_tokens: 300`) before adding to
 ## Project-Specific Conventions
 
 ### Environment Configuration
-Uses **dotenv with NODE_ENV suffix**: Loads `.env.${NODE_ENV}` (default: `.env.development`). Never hardcode `.env` - always use environment-specific files.
+Uses **dotenv with dual-file pattern**: Loads `.env` (base configuration, committed) first, then `.env.local` (local overrides, git-ignored) for secrets. Never commit sensitive data - always use `.env.local` for secrets in development.
 
 ### Event Registration
 `registerEvents()` in `src/util/registerEvents.js` programmatically creates `InteractionCreate` event handler for slash commands. Don't manually create this event file.
@@ -136,7 +136,7 @@ try {
 ## Key Commands
 
 ```bash
-npm start              # Start bot (loads .env.development by default)
+npm start              # Start bot (loads .env and .env.local)
 npm run deploy         # Register slash commands with Discord
 npm run docs:commands  # Generate command documentation table for README
 npm run lint          # ESLint check (eslint-config-neon)
