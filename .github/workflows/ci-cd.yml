@@ -52,6 +52,7 @@ jobs:
   lint-and-format:
     name: Lint and Format the Code
     needs: commit-lint
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
