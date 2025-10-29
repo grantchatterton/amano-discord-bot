@@ -2,9 +2,9 @@
 export default {
 	data: {
 		name: "foo",
-		description: "Responds with foo",
+		description: "Responds with bar",
 	},
 	async execute(interaction) {
-		await interaction.reply("foo");
+		await interaction.reply("bar");
 	},
 };
