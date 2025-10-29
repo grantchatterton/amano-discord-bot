@@ -18,6 +18,7 @@ on:
 jobs:
   commit-lint:
     name: Run the Commit Linter
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -32,7 +33,7 @@ jobs:
           cache: npm
 
       - name: Install dependencies
-        run: npm ci --prefer-offline
+        run: npm ci
 
       - name: Print versions
         run: |
@@ -52,7 +53,6 @@ jobs:
   lint-and-format:
     name: Lint and Format the Code
     needs: commit-lint
-    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -67,7 +67,7 @@ jobs:
           cache: npm
 
       - name: Install dependencies
-        run: npm ci --prefer-offline
+        run: npm ci
 
       - name: Run ESLint
         run: npm run lint
@@ -92,7 +92,7 @@ jobs:
           cache: npm
 
       - name: Install dependencies
-        run: npm ci --prefer-offline
+        run: npm ci
 
       - name: Run tests
         run: npm test
@@ -121,7 +121,7 @@ jobs:
           cache: npm
 
       - name: Install dependencies
-        run: npm ci --prefer-offline
+        run: npm ci
 
       - name: Verify the integrity of provenance attestations and registry signatures for installed dependencies
         run: npm audit signatures
