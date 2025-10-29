@@ -1,3 +1,11 @@
+## [1.9.3](https://github.com/grantchatterton/amano-discord-bot/compare/v1.9.2...v1.9.3) (2025-10-29)
+
+
+### Bug Fixes
+
+* **ci-cd:** ensure conditions for Docker image and Discord commands deployment are consistent ([b170a5b](https://github.com/grantchatterton/amano-discord-bot/commit/b170a5b3b880863f79f24186fc2698499f07ea62))
+* **test:** add missing line to test file ([dc154fb](https://github.com/grantchatterton/amano-discord-bot/commit/dc154fbe3947d62cb77d0e118e4ab2007b60d9cf))
+
 ## [1.9.2](https://github.com/grantchatterton/amano-discord-bot/compare/v1.9.1...v1.9.2) (2025-10-29)
 
 
