@@ -102,6 +102,8 @@ jobs:
     needs: [commit-lint, test]
     if: always() && github.event_name == 'push' && github.ref == 'refs/heads/main' && (needs.commit-lint.result == 'success' && (needs.test.result == 'success' || needs.test.result == 'skipped'))
     runs-on: ubuntu-latest
+    outputs:
+      new-release-published: ${{ steps.semantic.outputs.new-release-published }}
     permissions:
       contents: write # to be able to publish a GitHub release
       issues: write # to be able to comment on released issues
@@ -131,6 +133,7 @@ jobs:
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
 
       - name: Run Semantic Release
+        id: semantic
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: npx semantic-release
@@ -138,13 +141,12 @@ jobs:
   deploy-docker:
     name: Build and Push Docker Image
     needs: release
-    if: needs.release.result == 'success'
+    if: needs.release.outputs.new-release-published == 'true'
     uses: ./.github/workflows/docker-build-deploy.yml
     secrets: inherit
 
   deploy-discord-commands:
     name: Deploy Discord Commands
     needs: release
-    if: needs.release.result == 'success'
     uses: ./.github/workflows/discord-cmd-deploy.yml
     secrets: inherit
