@@ -186,7 +186,7 @@ export async function getMessageReply(message) {
 	// Fetch the replyChance for the channel the message was sent in
 	// We want to check if we should reply based on it
 	const channelService = serviceContainer.resolve("channelService");
-	
+
 	try {
 		const replyChance = await channelService.getChannelReplyChance(message.channelId);
 		if (!(getRandomInt(1, 100) <= replyChance)) {
