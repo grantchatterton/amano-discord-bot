@@ -148,5 +148,6 @@ jobs:
   deploy-discord-commands:
     name: Deploy Discord Commands
     needs: release
+    if: needs.release.outputs.new-release-published == 'true'
     uses: ./.github/workflows/discord-cmd-deploy.yml
     secrets: inherit
