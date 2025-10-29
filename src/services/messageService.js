@@ -1,17 +1,59 @@
 import QuickLRU from "quick-lru";
 import { Mutex } from "../util/mutex.js";
 
+/**
+ * Service for managing conversation message history and summaries.
+ * Provides methods to store, retrieve, and summarize message exchanges per guild.
+ * Uses an LRU cache for in-memory storage, mutex locks for thread-safe writes,
+ * and OpenAI for generating conversation summaries when message limits are reached.
+ */
 export default class MessageService {
+	/**
+	 * The Sequelize model for the Message table.
+	 *
+	 * @type {import('sequelize').ModelStatic<import('sequelize').Model>}
+	 */
 	#messageModel;
 
+	/**
+	 * The OpenAI client instance for generating summaries.
+	 *
+	 * @type {import('openai').OpenAI}
+	 */
 	#openAIClient;
 
+	/**
+	 * LRU cache storing message history per guild.
+	 * Maps guildId to an object containing messages array, summary, and mimic instruction.
+	 * Limited to 500 guilds to prevent unbounded memory growth.
+	 *
+	 * @type {import('quick-lru').default<string, {messages: Array<{role: string, content: string}>, summary: string | null, mimic: string | null}>}
+	 */
 	#messageCollection;
 
+	/**
+	 * Mutex lock to ensure thread-safe write operations to message data.
+	 * Only used for writes; reads are lock-free for performance.
+	 *
+	 * @type {Mutex}
+	 */
 	#mutex;
 
+	/**
+	 * Maximum number of messages to accumulate before generating a summary.
+	 * When this limit is reached, messages are summarized and cleared.
+	 *
+	 * @type {number}
+	 */
 	#maxMessageLimit;
 
+	/**
+	 * Creates a new MessageService instance.
+	 *
+	 * @param {import('sequelize').ModelStatic<import('sequelize').Model>} messageModel - The Sequelize model for messages
+	 * @param {import('openai').OpenAI} openAIClient - The OpenAI client for generating summaries
+	 * @param {number} maxMessageLimit - Maximum messages before summarization
+	 */
 	constructor(messageModel, openAIClient, maxMessageLimit) {
 		this.#messageModel = messageModel;
 		this.#openAIClient = openAIClient;
@@ -20,10 +62,27 @@ export default class MessageService {
 		this.#maxMessageLimit = maxMessageLimit;
 	}
 
+	/**
+	 * Retrieves the messages for a specific guild.
+	 * Returns a copy of the message history including any summary and mimic instructions.
+	 *
+	 * @param {string} guildId - The Discord guild ID
+	 * @returns {Promise<Array<{role: string, content: string}>>} Array of message objects with role and content
+	 */
 	async getMessages(guildId) {
 		return this.getMessagesUtil(guildId);
 	}
 
+	/**
+	 * Adds new messages to the guild's conversation history.
+	 * Protected by a mutex lock to prevent race conditions during concurrent writes.
+	 * Automatically generates and saves a summary when the message limit is reached.
+	 *
+	 * @param {string} guildId - The Discord guild ID
+	 * @param {...{role: string, content: string}} messages - Messages to add to the history
+	 * @returns {Promise<void>}
+	 * @throws {Error} If there's an error during the save process
+	 */
 	async addMessages(guildId, ...messages) {
 		await this.#mutex.lock();
 
@@ -37,6 +96,14 @@ export default class MessageService {
 		}
 	}
 
+	/**
+	 * Generates a conversation summary using OpenAI's GPT-4o model.
+	 * The summary includes the conversation content and any mimic instructions
+	 * (who/what the user asked the bot to talk like).
+	 *
+	 * @param {Array<{role: string, content: string}>} messages - Messages to summarize
+	 * @returns {Promise<{content: string, mimic: string | null}>} Object containing the summary and optional mimic instruction
+	 */
 	async getSummary(messages) {
 		const response = await this.#openAIClient.chat.completions.create({
 			model: "gpt-4o",
@@ -54,6 +121,15 @@ export default class MessageService {
 		return JSON.parse(response.choices[0].message.content);
 	}
 
+	/**
+	 * Retrieves or initializes the message data for a guild.
+	 * Returns a reference (not a copy) to the cached data, allowing atomic mutations
+	 * when called within the mutex lock. Loads existing summaries from the database
+	 * on first access.
+	 *
+	 * @param {string} guildId - The Discord guild ID
+	 * @returns {Promise<{messages: Array<{role: string, content: string}>, summary: string | null, mimic: string | null}>} Reference to the guild's message data
+	 */
 	async getMessageData(guildId) {
 		if (!this.#messageCollection.has(guildId)) {
 			const messageDataToCreate = {
@@ -84,6 +160,14 @@ export default class MessageService {
 		return this.#messageCollection.get(guildId);
 	}
 
+	/**
+	 * Utility method to get messages formatted for OpenAI API calls.
+	 * Returns a copy of the messages array including summary and mimic instructions
+	 * as system messages. Safe for external use as it prevents mutations to cached data.
+	 *
+	 * @param {string} guildId - The Discord guild ID
+	 * @returns {Promise<Array<{role: string, content: string}>>} Copy of formatted message array
+	 */
 	async getMessagesUtil(guildId) {
 		const messageData = await this.getMessageData(guildId);
 		const messages = [];
@@ -108,6 +192,17 @@ export default class MessageService {
 		return [...messages, ...messageData.messages];
 	}
 
+	/**
+	 * Saves messages to the guild's history and generates a summary if the message limit is reached.
+	 * Called within the mutex lock from addMessages to ensure atomic operations.
+	 * On successful summary generation, clears accumulated messages and persists to database.
+	 * On error, keeps accumulated messages to prevent data loss.
+	 *
+	 * @param {string} guildId - The Discord guild ID
+	 * @param {Array<{role: string, content: string}>} messages - New messages to save
+	 * @param {boolean} [force] - Force summary generation regardless of message count (defaults to false)
+	 * @returns {Promise<void>}
+	 */
 	async saveSummary(guildId, messages, force = false) {
 		// Get reference to cached data (protected by mutex in addMessages)
 		const messageData = await this.getMessageData(guildId);
