@@ -1,3 +1,10 @@
+## [1.8.2](https://github.com/grantchatterton/amano-discord-bot/compare/v1.8.1...v1.8.2) (2025-10-29)
+
+
+### Bug Fixes
+
+* **commands:** remove unused foo command implementation ([7a55fc6](https://github.com/grantchatterton/amano-discord-bot/commit/7a55fc69d052551291702cebd5b02ba2775f9796))
+
 ## [1.8.1](https://github.com/grantchatterton/amano-discord-bot/compare/v1.8.0...v1.8.1) (2025-10-29)
 
 
