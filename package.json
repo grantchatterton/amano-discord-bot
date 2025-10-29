@@ -36,9 +36,13 @@
 		"eslint": "^8.57.0",
 		"eslint-config-neon": "^0.1.62",
 		"eslint-formatter-pretty": "^6.0.1",
+		"lint-staged": "^16.2.6",
 		"markdown-table-ts": "^1.0.3",
 		"prettier": "^3.6.2",
 		"semantic-release": "^25.0.1",
 		"sequelize-cli": "^6.6.3"
+	},
+	"lint-staged": {
+		"*.js": "eslint --fix && prettier --write"
 	}
 }
