@@ -43,6 +43,9 @@
 		"sequelize-cli": "^6.6.3"
 	},
 	"lint-staged": {
-		"*.js": "eslint --fix && prettier --write"
+		"src/**/*.{js,mjs,cjs}": [
+			"eslint --fix",
+			"prettier --write"
+		]
 	}
 }
