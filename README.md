@@ -37,6 +37,54 @@ I plan on updating this application in the future to support customization for w
 - A Discord application and bot token (from the Discord Developer Portal)
 - OpenAI API key
 
+## Obtaining a Discord Bot Token
+
+To run Amano, you'll need to create a Discord application and bot through the Discord Developer Portal. Follow these steps to obtain your bot token and application ID:
+
+1. **Log in to the Discord Developer Portal**
+   - Visit [https://discord.com/developers/applications](https://discord.com/developers/applications)
+   - Log in with your Discord account
+   - If you don't have a Discord account, you'll need to create one first at [https://discord.com](https://discord.com)
+
+2. **Create a new application**
+   - Click the "New Application" button in the top-right corner
+   - Enter a name for your application (e.g., "Amano Bot" or "My Ernest Bot")
+   - Read and accept Discord's Terms of Service and Developer Policy
+   - Click "Create"
+
+3. **Copy your Application ID**
+   - On the "General Information" page, you'll see your "Application ID" (also called Client ID)
+   - Click "Copy" to copy this ID — you'll need it for the `APPLICATION_ID` environment variable
+   - Keep this page open as you'll need to come back to it
+
+4. **Create a bot**
+   - In the left sidebar, click on "Bot"
+   - Click the "Add Bot" button (or "Reset Token" if a bot already exists)
+   - Confirm by clicking "Yes, do it!" when prompted
+
+5. **Configure bot settings**
+   - Under "Privileged Gateway Intents", enable the following:
+     - **Message Content Intent** (required for the bot to read message content)
+   - Save changes if prompted
+
+6. **Retrieve your bot token**
+   - In the "Bot" section, find the "TOKEN" section
+   - Click "Reset Token" (if this is your first time, it may say "Copy" instead)
+   - Click "Yes, do it!" to confirm if prompted
+   - Click "Copy" to copy your bot token
+   - **Important**: Store this token securely — you won't be able to see it again
+   - If you lose the token, you'll need to reset it and update your environment configuration
+
+7. **Add the token and Application ID to your environment configuration**
+   - Add both values to your `.env.development` file (see Quick start below)
+   - Never commit bot tokens to version control or share them publicly
+   - Anyone with your bot token can control your bot
+
+**Security Notes**:
+- Keep your bot token secret and secure — treat it like a password
+- If your token is accidentally exposed (e.g., committed to a public repository), reset it immediately in the Developer Portal
+- Discord will automatically reset your token if they detect it has been compromised
+
 ## Obtaining an OpenAI API Key
 
 To use Amano's AI-powered features, you'll need an OpenAI API key. Follow these steps to obtain one:
