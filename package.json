@@ -4,6 +4,9 @@
 	"version": "1.0.0",
 	"private": true,
 	"type": "module",
+	"engines": {
+		"node": ">=18.0.0"
+	},
 	"scripts": {
 		"docs:commands": "node src/util/generateCmdDocs.js",
 		"lint": "eslint --ext .js,.mjs,.cjs src",
@@ -11,7 +14,8 @@
 		"format": "prettier --write .",
 		"format:check": "prettier --check .",
 		"start": "node --require dotenv/config src/index.js",
-		"deploy": "node --require dotenv/config src/util/deploy.js"
+		"deploy": "node --require dotenv/config src/util/deploy.js",
+		"test": "echo \"No tests specified!\""
 	},
 	"dependencies": {
 		"@discordjs/core": "^1.2.0",
