@@ -142,7 +142,7 @@ jobs:
   deploy-discord-commands:
     name: Deploy Discord Commands
     needs: release
-    if: needs.release.outputs.new_release_published == 'true'
+    if: always() && needs.release.result == 'success' && needs.release.outputs.new_release_published == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -186,7 +186,7 @@ jobs:
   deploy-docker:
     name: Build and Push Image to Docker Hub
     needs: release
-    if: needs.release.outputs.new_release_published == 'true'
+    if: always() && needs.release.result == 'success' && needs.release.outputs.new_release_published == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
