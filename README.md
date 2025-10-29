@@ -4,15 +4,16 @@
 
 [![Invite Amano](https://img.shields.io/badge/Invite%20To%20Your%20Server-%235865F2.svg?style=for-the-badge&logo=discord&logoColor=white)](https://discord.com/oauth2/authorize?client_id=1315330069287276576&permissions=117760&integration_type=0&scope=bot+applications.commands)
 
-Amano is a Discord bot based off the character Ernest Amano from Ace Attorney Investigations: Miles Edgeworth. It is used for automated replies and a set of fun utility commands. It was built with Node.js, discord.js, and Sequelize (SQLite in development). The bot can run locally, be deployed in Docker, or run in other Node.js-compatible environments.
+Amano is a Discord bot based off the character Ernest Amano from Ace Attorney Investigations: Miles Edgeworth. It is used for automated replies and a set of fun utility commands. It was built with Node.js, discord.js, and Sequelize ORM. The bot uses SQLite (in-memory) for development and supports MySQL or PostgreSQL for production. The bot can run locally, be deployed in Docker, or run in other Node.js-compatible environments.
 
 I plan on updating this application in the future to support customization for who/what the bot should behave as.
 
 ## Features
 
 - Automatic replies to messages containing configured swear words with a configurable chance
+- AI-powered responses when messages mention "ernest" (uses OpenAI)
 - Slash commands (see Commands below)
-- OpenAI integration for advanced replies (requires `OPENAI_API_KEY`)
+- Message tracking system for personalized AI interactions (opt-in)
 
 ## Commands
 
@@ -31,7 +32,7 @@ I plan on updating this application in the future to support customization for w
 
 ## Prerequisites
 
-- Node.js 18+ (recommended)
+- Node.js 20+ (LTS recommended)
 - npm (or yarn)
 - A Discord application and bot token (from the Discord Developer Portal)
 - OpenAI API key
@@ -55,7 +56,7 @@ DISCORD_TOKEN=your_bot_token_here
 APPLICATION_ID=your_application_id_here
 OPENAI_API_KEY=your_openai_key_here
 # Optional
-MAX_MESSAGE_LIMIT=100
+MAX_MESSAGE_LIMIT=20
 NODE_ENV=development
 ```
 
@@ -63,7 +64,8 @@ Notes:
 
 - `DISCORD_TOKEN` is required for the bot to login.
 - `APPLICATION_ID` is used when registering slash commands (`npm run deploy`).
-- When `NODE_ENV` is not `production`, the app uses an in-memory SQLite DB for dev convenience.
+- When `NODE_ENV` is not `production`, the app uses an in-memory SQLite database for development convenience.
+- For production, configure database connection using `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_HOST`, and `DB_DIALECT` environment variables (see Environment variables reference below).
 
 3. Register slash commands (optional but recommended before first run)
 
@@ -92,7 +94,7 @@ Build and run using Docker Compose:
 docker compose up --build
 ```
 
-When running in Docker you should supply environment variables via a `.env` file or the compose file.
+Note: The default `compose.yaml` is configured for development and loads environment variables from `.env.development`. For production deployments, modify the `compose.yaml` to use appropriate environment variables or a `.env.production` file.
 
 ### Run with Docker (without docker-compose)
 
@@ -144,12 +146,16 @@ Notes
 
 ## Environment variables reference
 
-- DISCORD_TOKEN — (required) the bot token from Discord Developer Portal
-- APPLICATION_ID — (required for registering commands) your application's client id
-- OPENAI_API_KEY — (required) OpenAI API key
-- NODE_ENV — (optional) set to `production` in production; default is `development`
-- MAX_MESSAGE_LIMIT — (optional) used by message service (integer)
-- DB\_\* variables — only required if you run with a production database (see `src/db/db.js`)
+- **DISCORD_TOKEN** — (required) the bot token from Discord Developer Portal
+- **APPLICATION_ID** — (required for registering commands) your application's client id
+- **OPENAI_API_KEY** — (required) OpenAI API key for AI-generated replies
+- **NODE_ENV** — (optional) set to `production` in production; default is `development`
+- **MAX_MESSAGE_LIMIT** — (optional) maximum number of messages to track per guild for AI context; default is 20
+- **DB_NAME** — (production only) database name
+- **DB_USER** — (production only) database user
+- **DB_PASSWORD** — (production only) database password
+- **DB_HOST** — (production only) database host
+- **DB_DIALECT** — (production only) database dialect (e.g., `mysql` or `postgres`)
 
 ## Registering commands
 
