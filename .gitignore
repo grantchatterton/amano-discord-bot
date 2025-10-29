@@ -33,6 +33,7 @@ package.tgz
 tsup.config.bundled*
 vitest.config.ts.timestamp*
 secrets
+.husky/
 
 # Deno
 deno.lock
