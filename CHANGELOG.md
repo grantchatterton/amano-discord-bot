@@ -1,3 +1,11 @@
+## [1.9.6](https://github.com/grantchatterton/amano-discord-bot/compare/v1.9.5...v1.9.6) (2025-10-29)
+
+
+### Bug Fixes
+
+* **ci-cd:** update deploy-production condition to include workflow_dispatch event ([b75b805](https://github.com/grantchatterton/amano-discord-bot/commit/b75b805aee3fd4b93edb6499f607a6663e926f0e))
+* **test:** add additional test line to test_for_commit.txt ([313435e](https://github.com/grantchatterton/amano-discord-bot/commit/313435e63ee7618391bde15717e86318c8296838))
+
 ## [1.9.5](https://github.com/grantchatterton/amano-discord-bot/compare/v1.9.4...v1.9.5) (2025-10-29)
 
 
