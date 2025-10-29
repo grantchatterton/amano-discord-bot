@@ -1,3 +1,11 @@
+## [1.6.3](https://github.com/grantchatterton/amano-discord-bot/compare/v1.6.2...v1.6.3) (2025-10-29)
+
+
+### Bug Fixes
+
+* **ci-cd:** update GitHub Actions to use PA_TOKEN for authentication ([e4a7d4c](https://github.com/grantchatterton/amano-discord-bot/commit/e4a7d4cf47a6c6dd2bcbf36f0d4ba089163b357c))
+* **foo:** update command description and response to 'bar' ([bc9e557](https://github.com/grantchatterton/amano-discord-bot/commit/bc9e55738109316dbf8508678db94aecfadb92df))
+
 ## [1.6.2](https://github.com/grantchatterton/amano-discord-bot/compare/v1.6.1...v1.6.2) (2025-10-29)
 
 
