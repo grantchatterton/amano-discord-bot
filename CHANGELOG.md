@@ -1,3 +1,11 @@
+## [1.9.5](https://github.com/grantchatterton/amano-discord-bot/compare/v1.9.4...v1.9.5) (2025-10-29)
+
+
+### Bug Fixes
+
+* **ci-cd:** update GitHub token secret for semantic release action ([89b21e5](https://github.com/grantchatterton/amano-discord-bot/commit/89b21e5a9a0966a63849e25c318a6d0beb99c79e))
+* **test:** add missing test line to test file ([4257b9c](https://github.com/grantchatterton/amano-discord-bot/commit/4257b9ceff23382e598ddd96749722549bdd070c))
+
 ## [1.9.4](https://github.com/grantchatterton/amano-discord-bot/compare/v1.9.3...v1.9.4) (2025-10-29)
 
 
