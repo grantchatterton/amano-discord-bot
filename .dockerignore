@@ -9,3 +9,5 @@ README.md
 .github
 node_modules
 secrets
+src/util/deploy.js
+src/util/generateCmdDocs.js
