@@ -49,8 +49,9 @@ export default {
 
 		await interaction.deferReply();
 
+		const channelService = serviceContainer.resolve("channelService");
+
 		try {
-			const channelService = serviceContainer.resolve("channelService");
 			await channelService.setChannelReplyChance(channel.id, chance);
 			return await interaction.editReply(`Reply chance for ${channelLink(channel.id)} set to ${bold(chance + "%")}.`);
 		} catch (error) {
