@@ -1,3 +1,11 @@
+## [1.9.4](https://github.com/grantchatterton/amano-discord-bot/compare/v1.9.3...v1.9.4) (2025-10-29)
+
+
+### Bug Fixes
+
+* **ci-cd:** correct output variable naming for release job ([bcb17ac](https://github.com/grantchatterton/amano-discord-bot/commit/bcb17ac96b6e8e24a3d05519ac422a04e0a00bba))
+* **test:** add additional line to test file ([b3123c7](https://github.com/grantchatterton/amano-discord-bot/commit/b3123c70b10f6f6d8b7d3232c3528e90c8ea408e))
+
 ## [1.9.3](https://github.com/grantchatterton/amano-discord-bot/compare/v1.9.2...v1.9.3) (2025-10-29)
 
 
