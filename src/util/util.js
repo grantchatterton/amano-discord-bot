@@ -186,12 +186,18 @@ export async function getMessageReply(message) {
 	// Fetch the replyChance for the channel the message was sent in
 	// We want to check if we should reply based on it
 	const channelService = serviceContainer.resolve("channelService");
-	const replyChance = await channelService.getChannelReplyChance(message.channelId);
-	if (!(getRandomInt(1, 100) <= replyChance)) {
+	
+	try {
+		const replyChance = await channelService.getChannelReplyChance(message.channelId);
+		if (!(getRandomInt(1, 100) <= replyChance)) {
+			return false;
+		}
+
+		// Return an object representing a message reply
+		message.channel.sendTyping();
+		return getGenericMessageReply();
+	} catch (error) {
+		console.error(`Error getting reply chance: ${error}`);
 		return false;
 	}
-
-	// Return an object representing a message reply
-	message.channel.sendTyping();
-	return getGenericMessageReply();
 }
