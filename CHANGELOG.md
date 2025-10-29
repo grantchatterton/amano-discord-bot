@@ -1,3 +1,10 @@
+## [1.9.2](https://github.com/grantchatterton/amano-discord-bot/compare/v1.9.1...v1.9.2) (2025-10-29)
+
+
+### Bug Fixes
+
+* **test:** add additional line to test file ([4a5d7ca](https://github.com/grantchatterton/amano-discord-bot/commit/4a5d7ca7b964b79b4c162210a83c475559761394))
+
 ## [1.9.1](https://github.com/grantchatterton/amano-discord-bot/compare/v1.9.0...v1.9.1) (2025-10-29)
 
 
