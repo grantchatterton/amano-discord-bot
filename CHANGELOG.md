@@ -1,3 +1,15 @@
+# [1.9.0](https://github.com/grantchatterton/amano-discord-bot/compare/v1.8.2...v1.9.0) (2025-10-29)
+
+
+### Features
+
+* **ci-cd:** add CI/CD pipeline with commit linting, code linting, testing, and release steps ([c0dcb59](https://github.com/grantchatterton/amano-discord-bot/commit/c0dcb5939ff97750814823a82ee1ca97da0d784d))
+* **ci-cd:** add CI/CD workflow for pull requests ([01090f8](https://github.com/grantchatterton/amano-discord-bot/commit/01090f8711153be902672101c81431f9251e3843))
+* **ci-cd:** add CI/CD workflow for push events ([2c2c1ba](https://github.com/grantchatterton/amano-discord-bot/commit/2c2c1badfcf948fed0c78540080c77efa6f2a919))
+* **ci-cd:** add commit linter workflow for validating commit messages ([fafd1f1](https://github.com/grantchatterton/amano-discord-bot/commit/fafd1f11585d0e77c5ea6493e402e925efe4370c))
+* **commands:** add 'foo' command with reply functionality ([#10](https://github.com/grantchatterton/amano-discord-bot/issues/10)) ([d31885b](https://github.com/grantchatterton/amano-discord-bot/commit/d31885b1d2d5b0757bfc18b3fc26c4ac6fcce483))
+* **package:** add commitlint script for validating commit messages ([c3e0be2](https://github.com/grantchatterton/amano-discord-bot/commit/c3e0be219f2e778f366e8d0e42b3c7d47379db65))
+
 ## [1.8.2](https://github.com/grantchatterton/amano-discord-bot/compare/v1.8.1...v1.8.2) (2025-10-29)
 
 
