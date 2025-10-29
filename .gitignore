@@ -13,7 +13,6 @@ pids
 
 # Env
 .env
-.env.*
 
 # Dist
 dist
