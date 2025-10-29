@@ -1,3 +1,10 @@
+## [1.9.1](https://github.com/grantchatterton/amano-discord-bot/compare/v1.9.0...v1.9.1) (2025-10-29)
+
+
+### Bug Fixes
+
+* **ci-cd:** update GitHub token for semantic release and remove obsolete token reference ([63aefed](https://github.com/grantchatterton/amano-discord-bot/commit/63aefedf9c08ce5efc94337d31b579a27c6cb6d1))
+
 # [1.9.0](https://github.com/grantchatterton/amano-discord-bot/compare/v1.8.2...v1.9.0) (2025-10-29)
 
 
