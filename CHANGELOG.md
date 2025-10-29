@@ -1,3 +1,10 @@
+# [1.7.0](https://github.com/grantchatterton/amano-discord-bot/compare/v1.6.3...v1.7.0) (2025-10-29)
+
+
+### Features
+
+* **bar:** add new command to respond with 'bar' ([#8](https://github.com/grantchatterton/amano-discord-bot/issues/8)) ([a99447f](https://github.com/grantchatterton/amano-discord-bot/commit/a99447f3cb6869c37e38fc34e2e7a4aedd14c58c))
+
 ## [1.6.3](https://github.com/grantchatterton/amano-discord-bot/compare/v1.6.2...v1.6.3) (2025-10-29)
 
 
