@@ -38,8 +38,8 @@ export async function loadStructures(dir, predicate, recursive = true) {
 
 	// Loop through all the files in the directory
 	for (const file of files) {
-		// If the file is index.js or the file does not end with .js, skip the file
-		if (file === "index.js" || !file.endsWith(".js")) {
+		// If the file is index.js skip it
+		if (file === "index.js") {
 			continue;
 		}
 
