@@ -76,7 +76,7 @@ To run Amano, you'll need to create a Discord application and bot through the Di
    - If you lose the token, you'll need to reset it and update your environment configuration
 
 7. **Add the token and Application ID to your environment configuration**
-   - Add both values to your `.env.development` file (see Quick start below)
+   - Add both values to your `.env` file (see Quick start below)
    - Never commit bot tokens to version control or share them publicly
    - Anyone with your bot token can control your bot
 
@@ -106,7 +106,7 @@ To use Amano's AI-powered features, you'll need an OpenAI API key. Follow these 
    - If you lose the key, you'll need to generate a new one
 
 4. **Add the key to your environment configuration**
-   - Add the key to your `.env.development` file (see Quick start below)
+   - Add the key to your `.env` file (see Quick start below)
    - Never commit API keys to version control or share them publicly
 
 **Note**: OpenAI API usage is billed based on consumption. Make sure to review [OpenAI's pricing](https://openai.com/pricing) and set up billing limits in your account settings to avoid unexpected charges.
@@ -121,9 +121,13 @@ npm install
 
 2. Create environment file
 
-The app loads environment variables from `.env.${NODE_ENV}` — by default `NODE_ENV` is `development`, so create a `.env.development` file in the project root.
+The app loads environment variables from a `.env` file in the project root. You can copy the example template to get started:
 
-At minimum include:
+```bash
+cp .env.example .env
+```
+
+Then edit `.env` to include your credentials:
 
 ```
 DISCORD_TOKEN=your_bot_token_here
@@ -139,7 +143,7 @@ Notes:
 - `DISCORD_TOKEN` is required for the bot to login.
 - `APPLICATION_ID` is used when registering slash commands (`npm run deploy`).
 - When `NODE_ENV` is not `production`, the app uses an in-memory SQLite database for development convenience.
-- For production, configure database connection using `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_HOST`, and `DB_DIALECT` environment variables (see Environment variables reference below).
+- For production, set `NODE_ENV=production` and configure database connection using `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_HOST`, and `DB_DIALECT` environment variables (see Environment variables reference below).
 
 3. Register slash commands (optional but recommended before first run)
 
@@ -161,6 +165,8 @@ You should see the bot initialize and log in using your provided token.
 
 The repository contains a `Dockerfile` and `compose.yaml` for containerized runs.
 
+Before running with Docker, create a `.env` file in the project root with your configuration (you can copy `.env.example` as a starting point).
+
 Build and run using Docker Compose:
 
 ```bash
@@ -168,7 +174,7 @@ Build and run using Docker Compose:
 docker compose up --build
 ```
 
-Note: The default `compose.yaml` is configured for development and loads environment variables from `.env.development`. For production deployments, modify the `compose.yaml` to use appropriate environment variables or a `.env.production` file.
+Note: The `compose.yaml` loads environment variables from the `.env` file in the project root. Make sure to create this file with your configuration before running.
 
 ### Run with Docker (without docker-compose)
 
@@ -196,6 +202,7 @@ Or run by passing environment variables directly:
 docker run -e DISCORD_TOKEN=your_token \
   -e APPLICATION_ID=your_application_id \
   -e OPENAI_API_KEY=your_openai_key \
+  -e NODE_ENV=production \
   --name amano-discord-bot \
   --restart unless-stopped \
   -d amano-discord-bot:latest
@@ -244,7 +251,7 @@ This uses `src/util/deploy.js` and requires `DISCORD_TOKEN` and `APPLICATION_ID`
 ## Inviting the bot to a Discord server (self hosted)
 
 1. Get your Application (Client) ID:
-   - From the Discord Developer Portal (Applications → your app) or from your local `.env.*` as `APPLICATION_ID`.
+   - From the Discord Developer Portal (Applications → your app) or from your local `.env` file as `APPLICATION_ID`.
 
 2. Use the OAuth2 URL generator (recommended):
    - In the Developer Portal go to OAuth2 → URL Generator.
