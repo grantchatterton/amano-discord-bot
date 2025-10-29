@@ -1,3 +1,17 @@
+# [1.8.0](https://github.com/grantchatterton/amano-discord-bot/compare/v1.7.0...v1.8.0) (2025-10-29)
+
+
+### Bug Fixes
+
+* **ci-cd:** update lint-and-format job to run ESLint and Prettier checks only ([f9ee3a4](https://github.com/grantchatterton/amano-discord-bot/commit/f9ee3a4a286fd64eeaf7b74c2ed82ff82fd15aee))
+* **config:** update dotenv path resolution to use project root directory without app-root-path ([0286542](https://github.com/grantchatterton/amano-discord-bot/commit/028654249315adafb5d721742ca135f1ca0c90a2))
+* **package:** update lint-staged configuration to target specific file patterns ([c5dc4a1](https://github.com/grantchatterton/amano-discord-bot/commit/c5dc4a1995459787c970bfd7603a90b4a0b75ee1))
+
+
+### Features
+
+* **package:** add lint-staged for pre-commit linting and formatting ([fff2d8b](https://github.com/grantchatterton/amano-discord-bot/commit/fff2d8b76bc56bec2247cc7231b0c315d25a54dd))
+
 # [1.7.0](https://github.com/grantchatterton/amano-discord-bot/compare/v1.6.3...v1.7.0) (2025-10-29)
 
 
