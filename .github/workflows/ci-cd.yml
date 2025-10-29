@@ -112,7 +112,6 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          token: ${{ secrets.PA_TOKEN }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -133,5 +132,13 @@ jobs:
 
       - name: Run Semantic Release
         env:
-          GITHUB_TOKEN: ${{ secrets.PA_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: npx semantic-release
+
+  deploy-docker:
+    needs: release
+    uses: ./.github/workflows/docker-build-deploy.yml@main
+
+  deploy-discord-commands:
+    needs: release
+    uses: ./.github/workflows/discord-cmd-deploy.yml@main
