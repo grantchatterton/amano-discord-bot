@@ -61,7 +61,7 @@ To use Amano's AI-powered features, you'll need an OpenAI API key. Follow these 
    - Add the key to your `.env.development` file (see Quick start below)
    - Never commit API keys to version control or share them publicly
 
-**Note**: OpenAI API usage is billed based on consumption. Make sure to review [OpenAI's pricing](https://openai.com/api/pricing/) and set up billing limits in your account settings to avoid unexpected charges.
+**Note**: OpenAI API usage is billed based on consumption. Make sure to review [OpenAI's pricing](https://openai.com/pricing) and set up billing limits in your account settings to avoid unexpected charges.
 
 ## Quick start — run locally
 
