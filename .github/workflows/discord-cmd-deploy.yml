@@ -1,41 +1,14 @@
-name: Discord Command Deployment
+name: "Discord Command Deployment"
 
 on:
+  workflow_dispatch:
   release:
-    types: [published]
-  workflow_dispatch: # Allow manual triggers
-
-concurrency:
-  group: discord-deploy
-  cancel-in-progress: false
+    types:
+      - published
 
 jobs:
-  check-changes:
-    name: Check for Changes in Commands Directory
-    if: ${{ github.event_name == 'release' }}
-    runs-on: ubuntu-latest
-    outputs:
-      commands_changed: ${{ steps.changed-files.outputs.any_changed }}
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Get changed files
-        id: changed-files
-        uses: tj-actions/changed-files@v40
-        with:
-          files: src/commands/**
-
-      - name: Print if changes were detected
-        if: ${{ steps.changed-files.outputs.any_changed == 'true' }}
-        run: echo "Files in src/commands were modified!"
-
-  deploy-commands:
+  deploy-discord-commands:
     name: Deploy Discord Commands
-    needs: check-changes
-    if: ${{ always() && (needs.check-changes.result == 'skipped' || needs.check-changes.outputs.commands_changed == 'true') }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -62,13 +35,15 @@ jobs:
         run: npm run docs:commands
 
       - name: Commit files
+        id: commit
         run: |
           git config --local user.name "github-actions[bot]"
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git add README.md
-          git commit -m "docs(README): update command docs" || echo "No changes to commit"
+          git diff --staged --quiet || git commit -m "docs(README): update command docs"
 
       - name: Push changes
+        if: steps.commit.outcome == 'success' && steps.commit.conclusion == 'success'
         uses: ad-m/github-push-action@master
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
