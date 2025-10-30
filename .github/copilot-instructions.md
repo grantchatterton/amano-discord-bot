@@ -84,10 +84,10 @@ Commands, events, models auto-load from directories. Must pass Zod validation. F
 3. **Should run** `npm run docs:commands` to update README
 4. Command auto-loads on next restart, no other code changes needed
 
-### Message Reply Logic (src/util/util.js → getMessageReply())
-1. "ernest" keyword → Always AI reply via `getAIReply()` (OpenAI gpt-4o-mini, `json_object` format, `max_tokens: 500`)
-2. Swear word → Probability-based reply (channel's `replyChance`, configurable via `/chance` command)
-3. Fallback → Random quote+image from `src/quotes.js` + `src/images.js`
+### Message Reply Logic (in src/util/util.js, function getMessageReply())
+1. "ernest" keyword - Always AI reply via `getAIReply()` (OpenAI gpt-4o-mini, `json_object` format, `max_tokens: 500`)
+2. Swear word - Probability-based reply (channel's `replyChance`, configurable via `/chance` command)
+3. Fallback - Random quote+image from `src/quotes.js` + `src/images.js`
 
 **Performance**: `getAIReply()` parallelizes data fetching before OpenAI call using `Promise.allSettled([messageService.getMessages(...), userService.getUser(...)])`
 
@@ -123,13 +123,16 @@ Root config files:
 
 Triggers on push/PR to main (only `src/**` and `tests/**` paths):
 
-1. **commit-lint** (always) → Validates Conventional Commits format
-2. **lint-and-format** (PR only) → Runs `npm run lint` and `npm run format:check`
-3. **test** → Runs `npm test` (currently no-op)
-4. **release** (push to main) → Semantic-release, updates version, creates GitHub release
-5. **deploy-discord-commands** (if new release) → `npm run deploy`, updates README, commits back
-6. **deploy-docker** (if new release) → Multi-platform build (amd64/arm64), push to Docker Hub
-7. **deploy-production** (if new release) → SSH to VPS, `docker compose down/up`
+**Job Dependencies** (jobs run in sequence as listed):
+1. **commit-lint** (always runs first) - Validates Conventional Commits format
+2. **lint-and-format** (after commit-lint, PR only) - Runs `npm run lint` and `npm run format:check`
+3. **test** (after lint-and-format) - Runs `npm test` (currently no-op)
+4. **release** (after commit-lint + test, push to main only) - Semantic-release, updates version, creates GitHub release
+5. **deploy-discord-commands** (after release, if new release published) - `npm run deploy`, updates README, commits back
+6. **deploy-docker** (after release, if new release published) - Multi-platform build (amd64/arm64), push to Docker Hub
+7. **deploy-production** (after deploy-docker) - SSH to VPS, `docker compose down/up`
+
+**Key behaviors**: lint-and-format only runs on PRs. Release jobs (4-7) only run on main branch pushes after successful commit-lint and test jobs.
 
 **Local validation before commit**:
 ```bash
