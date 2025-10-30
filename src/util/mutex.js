@@ -10,22 +10,22 @@ export class Mutex {
 	 *
 	 * @type {Array<() => void>}
 	 */
-	queue;
+	#queue;
 
 	/**
 	 * Indicates whether the mutex is currently locked.
 	 *
 	 * @type {boolean}
 	 */
-	locked;
+	#locked;
 
 	/**
 	 * Creates a new Mutex instance.
 	 * The mutex starts in an unlocked state with an empty queue.
 	 */
 	constructor() {
-		this.queue = [];
-		this.locked = false;
+		this.#queue = [];
+		this.#locked = false;
 	}
 
 	/**
@@ -46,10 +46,10 @@ export class Mutex {
 	 */
 	lock() {
 		return new Promise((resolve) => {
-			if (this.locked) {
-				this.queue.push(resolve);
+			if (this.#locked) {
+				this.#queue.push(resolve);
 			} else {
-				this.locked = true;
+				this.#locked = true;
 				resolve();
 			}
 		});
@@ -63,11 +63,11 @@ export class Mutex {
 	 * @returns {void}
 	 */
 	release() {
-		if (this.queue.length > 0) {
-			const resolve = this.queue.shift();
+		if (this.#queue.length > 0) {
+			const resolve = this.#queue.shift();
 			resolve();
 		} else {
-			this.locked = false;
+			this.#locked = false;
 		}
 	}
 }
