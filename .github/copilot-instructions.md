@@ -47,8 +47,8 @@ Models export a function accepting Sequelize instance (see `src/models/channel.j
 
 ### Message Reply Logic
 `src/util/util.js` contains the decision tree:
-1. Check for swear words → probabilistic reply with quote/image
-2. Check if message mentions "ernest" → AI-powered reply using OpenAI
+1. Check if message mentions "ernest" → AI-powered reply using OpenAI
+2. Check for swear words → probabilistic reply with quote/image
 3. AI replies include conversation history from `MessageService` (LRU-cached, summarized at limit)
 
 ## Development Workflow
