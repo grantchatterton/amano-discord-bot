@@ -2,7 +2,7 @@
 
 ## ⚠️ Critical: Commit Message Requirements
 
-**ALL commits MUST follow Conventional Commits format or CI/CD will fail.**
+**ALL commits to main MUST follow Conventional Commits format or CI/CD will fail.**
 
 Format: `type(scope): description`
 
@@ -14,7 +14,13 @@ Examples:
 - `docs(README): update setup instructions`
 - `chore(deps): update discord.js to v14.16`
 
-**NEVER use generic messages like "Initial plan", "Update files", "WIP", etc.** These will fail commitlint validation in CI/CD pipeline.
+**For Pull Requests:**
+- PR titles MUST follow Conventional Commits format (validated by CI)
+- Individual commits within PRs can use any message (only PR title is enforced)
+- When Copilot creates PRs, ensure the PR title uses proper format like `feat: add new feature`
+- **NEVER use generic PR titles like "Initial plan", "Update files", "WIP"**
+
+**Why:** The repository uses squash merges, so the PR title becomes the commit message on main. This ensures clean commit history while allowing flexibility during development.
 
 ## Architecture Overview
 
@@ -103,7 +109,8 @@ The project uses GitHub Actions with a multi-stage pipeline (`.github/workflows/
 **1. Commit Lint** (runs on all pushes/PRs)
 - Validates commit messages against Conventional Commits spec
 - Push events: validates last commit only
-- PR events: validates all commits from base to head
+- PR events: validates PR title only (individual commits within PR are not checked)
+- **Important:** This repository uses squash merges, so PR titles become the final commit message on main
 
 **2. Lint and Format** (PRs only)
 - Runs ESLint check (`npm run lint`)
@@ -163,6 +170,16 @@ Semantic-release plugins (`.releaserc.json`):
 - NPM version bump (publish disabled)
 - Git asset commits (package.json, CHANGELOG.md)
 - GitHub release creation
+
+### GitHub Repository Settings
+To enforce the PR title workflow, configure these settings in the GitHub repository:
+1. **Settings → General → Pull Requests**:
+   - Enable "Allow squash merging"
+   - Disable "Allow merge commits" and "Allow rebase merging"
+   - Set default to "Default to pull request title" for squash merge commit messages
+2. **Settings → Branches → Branch protection rules** for `main`:
+   - Require status checks to pass before merging (enable commit-lint check)
+   - Require branches to be up to date before merging (optional but recommended)
 
 ## Critical Implementation Details
 
