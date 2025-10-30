@@ -1,191 +1,120 @@
-# Amano Discord Bot - AI Coding Agent Instructions
+# Copilot Instructions for Amano Discord Bot
 
-## Project Overview
-Discord.js v14 bot (~1,216 LOC) that roleplays as Ernest Amano, responding to swears/"ernest" with AI replies. Node.js ESM, Sequelize ORM, OpenAI, SQLite dev/MySQL+Postgres prod. 5 slash commands, 2 events, 3 models.
+## Architecture Overview
 
-## Quick Start & Build Commands
+This is a Discord.js bot with a service-oriented architecture using dependency injection via a singleton `ServiceContainer` (`src/services/serviceContainer.js`). Services are registered at startup in `src/index.js` and resolved throughout the application.
 
-### Setup (Always Required First)
-```bash
-npm install              # ~60s, always run first after checkout
-cp .env.example .env     # Then edit with DISCORD_TOKEN, APPLICATION_ID, OPENAI_API_KEY
-```
+**Core Components:**
+- **Commands** (`src/commands/`): Slash commands following discord.js v14 structure with `data` and `execute` exports
+- **Events** (`src/events/`): Discord event handlers (`messageCreate`, `ready`) with `name` and `execute` exports
+- **Services** (`src/services/`): Business logic layer (ChannelService, MessageService, UserService) injected via serviceContainer
+- **Models** (`src/models/`): Sequelize ORM models exported as loader functions that accept a Sequelize instance
+- **Loaders** (`src/util/loaders.js`): Dynamic structure loaders with Zod-based validation predicates
 
-### Validation Commands (Run in Order)
-```bash
-npm run lint            # ESLint check (~1-2s), must pass
-npm run format:check    # Prettier check (~3-5s), must pass
-npm test               # Currently no-op, always succeeds
-```
+**Data Flow:**
+1. Discord events trigger handlers in `src/events/`
+2. Handlers call `getMessageReply()` from `src/util/util.js` which orchestrates logic
+3. Services accessed via `serviceContainer.resolve()` handle persistence and OpenAI interactions
+4. Message tracking uses mutex locks (`src/util/mutex.js`) for thread-safe writes to in-memory LRU cache
 
-### Auto-Fix Commands
-```bash
-npm run lint:fix        # Auto-fix lint errors
-npm run format          # Auto-format all files
-```
+## Database Configuration
 
-### Runtime Commands (Require Credentials)
-```bash
-npm start                  # Start bot (loads .env, drops/recreates DB tables in dev)
-npm run deploy             # Register commands with Discord (needs DISCORD_TOKEN, APPLICATION_ID)
-npm run docs:commands      # Update README command table (~1s, no credentials needed)
-```
+Environment-based setup in `src/db/db.js`:
+- **Development**: SQLite in-memory (auto-recreated on restart, `sync({ force: true })`)
+- **Production**: MySQL/PostgreSQL configured via `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_HOST`, `DB_DIALECT` env vars
 
-### Docker
-```bash
-docker compose up --build  # Requires .env file in project root
-```
+Models sync automatically in `src/db/dbInit.js` - no migrations in development.
 
-## Known Issues & Workarounds
+## Key Patterns
 
-**Issue**: `npm install` shows EBADENGINE warnings for semantic-release packages  
-**Fix**: Ignore - dev dependencies only, work fine with Node 20.x
-
-**Issue**: SQLite deprecation warning `DeprecationWarning: The URL sqlite::memory: is invalid`  
-**Fix**: Ignore - Sequelize/Node.js compatibility issue, database works correctly
-
-**Issue**: `ENOTFOUND discord.com` on `npm start` or `npm run deploy`  
-**Fix**: Normal without network - requires Discord API connectivity
-
-**Issue**: No `.husky/` directory despite husky in package.json  
-**Fix**: Local hooks not set up, CI handles all validation
-
-## Architecture Patterns
-
-### Service Container (src/services/serviceContainer.js)
-All services use singleton DI container. Register in `src/index.js` at startup:
+### Service Container Pattern
 ```javascript
-serviceContainer.register("openAI", new OpenAI({ apiKey: process.env.OPENAI_API_KEY }));
+// Register at startup (src/index.js)
 serviceContainer.register("channelService", new ChannelService(sequelize.models.Channel));
+
+// Resolve in commands/handlers
+const channelService = serviceContainer.resolve("channelService");
 ```
 
-**Critical**: Resolve services OUTSIDE try-catch to fail fast on config errors:
-```javascript
-const openAI = serviceContainer.resolve("openAI");  // Let this throw if misconfigured
-try { await openAI.chat.completions.create(...); } catch (error) { /* handle runtime errors */ }
-```
+### Command Structure
+Commands must export `{ data, execute }` matching the predicate in `src/commands/index.js`. See `src/commands/chance.js` for permission checking pattern.
 
-### Dynamic Module Loading (src/util/loaders.js)
-Commands, events, models auto-load from directories. Must pass Zod validation. Files named `index.js` skipped.
+### Event Structure
+Events must export `{ name, execute }` (optional `once: true`). The `InteractionCreate` event is auto-generated in `src/util/registerEvents.js` to route slash commands.
 
-- **Commands**: `export default { data: {...}, async execute(interaction) {...} }`
-- **Events**: `export default { name: Events.X, async execute(...args) {...} }`  
-- **Models**: `export default (sequelize) => sequelize.define(...)`
+### Model Loaders
+Models export a function accepting Sequelize instance (see `src/models/channel.js`). This pattern allows models to reference each other via `sequelize.models.*` after all are loaded.
 
-### Database
-- **Dev**: In-memory SQLite, `force: true` sync (drops tables on restart)
-- **Prod**: MySQL/Postgres via `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_HOST`, `DB_DIALECT` env vars
+### Message Reply Logic
+`src/util/util.js` contains the decision tree:
+1. Check for swear words → probabilistic reply with quote/image
+2. Check if message mentions "ernest" → AI-powered reply using OpenAI
+3. AI replies include conversation history from `MessageService` (LRU-cached, summarized at limit)
 
-## Critical Workflows
+## Development Workflow
 
-### Adding New Slash Commands
-1. Create `src/commands/your-command.js` (see `src/commands/ping.js` for minimal example)
-2. **Must run** `npm run deploy` to register with Discord (requires credentials)
-3. **Should run** `npm run docs:commands` to update README
-4. Command auto-loads on next restart, no other code changes needed
-
-### Message Reply Logic (in src/util/util.js, function getMessageReply())
-1. "ernest" keyword - Always AI reply via `getAIReply()` (OpenAI gpt-4o-mini, `json_object` format, `max_tokens: 500`)
-2. Swear word - Probability-based reply (channel's `replyChance`, configurable via `/chance` command)
-3. Fallback - Random quote+image from `src/quotes.js` + `src/images.js`
-
-**Performance**: `getAIReply()` parallelizes data fetching before OpenAI call using `Promise.allSettled([messageService.getMessages(...), userService.getUser(...)])`
-
-### Message History Tracking
-- Opt-in via `/track` command (stores in `User.trackMessages` boolean)
-- `MessageService` uses `QuickLRU` cache (500 guilds), `Mutex` lock for writes only
-- Max messages per guild: `MAX_MESSAGE_LIMIT` env var (default 20)
-- Dev mode: Data lost on restart (in-memory DB)
-
-## Project Structure
-
-```
-src/
-├── index.js              # Entry point, service registration, bot initialization
-├── config.js             # Env loading (dotenv), exports MESSAGE_REPLY_CHANCE, MAX_MESSAGE_LIMIT
-├── commands/             # Slash commands (auto-loaded): ping, roll, meme, chance, track
-├── events/               # Discord events (auto-loaded): ready, messageCreate
-├── models/               # Sequelize models (auto-loaded): channel, message, user
-├── services/             # Business logic: serviceContainer, channelService, messageService, userService
-├── db/                   # Database: db.js (Sequelize instance), dbInit.js (model loading & sync)
-├── util/                 # Helpers: loaders, registerEvents, deploy, generateCmdDocs, mutex, util (core bot logic)
-├── swears.js, quotes.js, images.js  # Bot data
-
-Root config files:
-├── .eslintrc.json        # ESLint (neon preset)
-├── .prettierrc.json      # Prettier (tabs, 120 width, double quotes, trailing commas)
-├── .releaserc.json       # Semantic-release (changelog, git, github plugins)
-├── commitlint.config.js  # Conventional Commits validation
-└── .github/workflows/ci-cd.yml  # Main CI/CD pipeline
-```
-
-## CI/CD Pipeline (.github/workflows/ci-cd.yml)
-
-Triggers on push/PR to main (only `src/**` and `tests/**` paths):
-
-**Job Dependencies** (jobs run in sequence as listed):
-1. **commit-lint** (always runs first) - Validates Conventional Commits format
-2. **lint-and-format** (after commit-lint, PR only) - Runs `npm run lint` and `npm run format:check`
-3. **test** (after lint-and-format) - Runs `npm test` (currently no-op)
-4. **release** (after commit-lint + test, push to main only) - Semantic-release, updates version, creates GitHub release
-5. **deploy-discord-commands** (after release, if new release published) - `npm run deploy`, updates README, commits back
-6. **deploy-docker** (after release, if new release published) - Multi-platform build (amd64/arm64), push to Docker Hub
-7. **deploy-production** (after deploy-docker) - SSH to VPS, `docker compose down/up`
-
-**Key behaviors**: lint-and-format only runs on PRs. Release jobs (4-7) only run on main branch pushes after successful commit-lint and test jobs.
-
-**Local validation before commit**:
+**Setup:**
 ```bash
-npm run lint && npm run format:check && npm test
-git log -1 --pretty=%B | npx commitlint  # Validate commit message
+npm install
+cp .env.example .env  # Add DISCORD_TOKEN, APPLICATION_ID, OPENAI_API_KEY
+npm run deploy        # Register slash commands with Discord
+npm start             # Run bot
 ```
 
-## Commit Message Format
-Use Conventional Commits: `type(scope): description`
+**Code Quality:**
+- ESLint: Uses `eslint-config-neon` preset (Node.js + Prettier)
+- Disabled JSDoc rules: `valid-types`, `check-tag-names`, `no-undefined-types` (see `.eslintrc.json`)
+- Pre-commit: Husky + lint-staged runs `eslint --fix` and `prettier --write` on staged `.js` files
+- Run manually: `npm run lint:fix` and `npm run format`
 
-Valid types: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `chore`
+**Commit Messages:**
+Follow Conventional Commits (enforced by commitlint): `type(scope): description`
+- Types: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `chore`
+- Example: `feat(commands): add new quote randomizer command`
 
-Examples:
-- `feat(commands): add new roll command`
-- `fix(util): correct swear detection regex`
-- `docs(README): update installation steps`
+**Command Documentation:**
+Run `npm run docs:commands` to regenerate the commands table in `README.md` (updates between `<!-- BEGIN COMMANDS SECTION -->` markers).
 
-## Key Dependencies
-- **discord.js** v14.16.0 (requires "Message Content Intent" in Discord Dev Portal)
-- **openai** v5.22.0 (gpt-4o-mini for responses, gpt-4o for summaries)
-- **sequelize** v6.37.7 + sqlite3 v5.1.7 (dev) + mysql2 v3.15.0 (prod option)
-- **dotenv** v16.6.1 (loaded via `node --require dotenv/config` in scripts)
-- **quick-lru** v7.3.0 (message history cache)
-- **zod** v3.23.8 (module validation)
+## Critical Implementation Details
 
-## Environment Variables
+### OpenAI Integration
+- Model: `gpt-4o-mini` with `response_format: { type: "json_object" }`
+- System prompt enforces Ernest Amano character with mood-based responses
+- Message history capped at `MAX_MESSAGE_LIMIT` (default 20, configurable via env)
+- When limit reached, `MessageService` auto-generates summary and clears history
+
+### Mutex for Message Tracking
+`MessageService.addMessages()` uses a custom `Mutex` class to prevent race conditions when updating conversation history. Always lock before writes, unlock in finally block.
+
+### Swear Detection
+`hasSwear()` in `src/util/util.js` uses regex patterns from `src/swears.js`. URLs are explicitly excluded from swear checking. Reply chance per channel stored in DB via `ChannelService`.
+
+### Structure Loading
+`loadStructures()` recursively imports files, validates with predicates (Zod schemas), skips `index.js`. Commands/events/models all use this pattern with type-specific predicates.
+
+## Environment Variables Reference
+
 Required:
-- `DISCORD_TOKEN` - Bot token from Discord Developer Portal
-- `APPLICATION_ID` - Application client ID (for command deployment)
-- `OPENAI_API_KEY` - OpenAI API key
+- `DISCORD_TOKEN`: Bot token from Discord Developer Portal
+- `APPLICATION_ID`: Discord application ID for command registration
+- `OPENAI_API_KEY`: OpenAI API key for AI replies
 
 Optional:
-- `NODE_ENV` - "development" (default) uses SQLite in-memory, "production" requires DB config
-- `MAX_MESSAGE_LIMIT` - Max messages per guild (default 20)
-- `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_HOST`, `DB_DIALECT` - Production database config
+- `MAX_MESSAGE_LIMIT`: Messages before summarization (default: 20)
+- `NODE_ENV`: Set to `production` to use external DB
+- Production DB: `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_HOST`, `DB_DIALECT`
 
-## Common Gotchas
+## Common Tasks
 
-- **Command changes**: Modify `data` in command file → **must** `npm run deploy` to register
-- **Service resolution**: Resolve services before try-catch, not inside (fail fast on config errors)
-- **Model exports**: Export function, not class: `export default (sequelize) => sequelize.define(...)`
-- **Dev DB**: Drops tables on restart - don't rely on persistent data in development
-- **InteractionCreate**: Auto-generated by `registerEvents()`, don't create manually
-- **ES Modules**: Use `import.meta.url`, dynamic imports with `(await import(path)).default`
-- **OpenAI format**: Use `json_object` not `json_schema` (faster), set `max_tokens` for speed
+**Add a new command:**
+1. Create file in `src/commands/` exporting `{ data, execute }`
+2. Run `npm run deploy` to register with Discord
+3. Run `npm run docs:commands` to update README
 
-## Making Changes - Workflow
+**Add a service:**
+1. Create class in `src/services/`
+2. Register in `src/index.js`: `serviceContainer.register("name", instance)`
+3. Resolve where needed: `serviceContainer.resolve("name")`
 
-1. Make code changes
-2. `npm run lint:fix && npm run format` (auto-fix)
-3. `npm run docs:commands` (if commands changed)
-4. Test manually if possible (requires credentials)
-5. Commit with format: `type(scope): description`
-6. For slash commands: `npm run deploy` (registers with Discord)
-
-**Trust these instructions**: Check this doc before searching/grepping codebase. Use documented command sequences and workarounds. Only search if info incomplete or incorrect.
+**Modify AI behavior:**
+Edit system prompt in `getAIReply()` in `src/util/util.js`. Mood mapping to image sets is at bottom of function.
