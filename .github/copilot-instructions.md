@@ -53,7 +53,7 @@ Models export a function accepting Sequelize instance (see `src/models/channel.j
 
 ## Development Workflow
 
-**Setup:**
+### Local Development Setup
 ```bash
 npm install
 cp .env.example .env  # Add DISCORD_TOKEN, APPLICATION_ID, OPENAI_API_KEY
@@ -61,19 +61,92 @@ npm run deploy        # Register slash commands with Discord
 npm start             # Run bot
 ```
 
-**Code Quality:**
-- ESLint: Uses `eslint-config-neon` preset (Node.js + Prettier)
-- Disabled JSDoc rules: `valid-types`, `check-tag-names`, `no-undefined-types` (see `.eslintrc.json`)
-- Pre-commit: Husky + lint-staged runs `eslint --fix` and `prettier --write` on staged `.js` files
-- Run manually: `npm run lint:fix` and `npm run format`
+### Code Quality Tools
+- **ESLint**: Uses `eslint-config-neon` preset (Node.js + Prettier)
+  - Disabled JSDoc rules: `valid-types`, `check-tag-names`, `no-undefined-types` (see `.eslintrc.json`)
+  - Run: `npm run lint` (check) or `npm run lint:fix` (auto-fix)
+- **Prettier**: Code formatting
+  - Run: `npm run format:check` (verify) or `npm run format` (auto-format)
+- **Pre-commit hooks**: Husky + lint-staged automatically runs `eslint --fix` and `prettier --write` on staged `.js` files
 
-**Commit Messages:**
+### Commit Message Convention
 Follow Conventional Commits (enforced by commitlint): `type(scope): description`
-- Types: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `chore`
-- Example: `feat(commands): add new quote randomizer command`
+- **Types**: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `chore`
+- **Example**: `feat(commands): add new quote randomizer command`
+- Validated on push (last commit) and PRs (all commits in PR)
 
-**Command Documentation:**
-Run `npm run docs:commands` to regenerate the commands table in `README.md` (updates between `<!-- BEGIN COMMANDS SECTION -->` markers).
+### Command Documentation
+Run `npm run docs:commands` to regenerate the commands table in `README.md` (updates between `<!-- BEGIN COMMANDS SECTION -->` markers). This is automated in CI/CD after releases.
+
+## CI/CD Pipeline
+
+The project uses GitHub Actions with a multi-stage pipeline (`.github/workflows/ci-cd.yml`):
+
+### Pipeline Stages
+
+**1. Commit Lint** (runs on all pushes/PRs)
+- Validates commit messages against Conventional Commits spec
+- Push events: validates last commit only
+- PR events: validates all commits from base to head
+
+**2. Lint and Format** (PRs only)
+- Runs ESLint check (`npm run lint`)
+- Runs Prettier format check (`npm run format:check`)
+- Blocks merge if linting/formatting fails
+
+**3. Test** (PRs only, after lint passes)
+- Runs `npm test` (currently placeholder)
+- Will execute unit tests when implemented
+
+**4. Release** (main branch pushes only, after commit-lint and test)
+- Uses semantic-release with `.releaserc.json` configuration
+- Auto-generates version bump based on commit types:
+  - `fix:` → patch (1.0.x)
+  - `feat:` → minor (1.x.0)
+  - `BREAKING CHANGE:` → major (x.0.0)
+- Creates GitHub release with auto-generated notes
+- Updates `CHANGELOG.md`, `package.json`, `package-lock.json`
+- Commit created: `chore(release): x.x.x [skip ci]`
+
+**5. Deploy Discord Commands** (after successful release)
+- Runs `npm run deploy` to register slash commands with Discord API
+- Regenerates README command docs (`npm run docs:commands`)
+- Auto-commits updated README if changes detected
+- Requires secrets: `DISCORD_TOKEN`, `APPLICATION_ID`
+
+**6. Deploy Docker** (after successful release, parallel with Discord deploy)
+- Builds multi-platform images (linux/amd64, linux/arm64)
+- Tags: `username/repo:x.x.x` and `username/repo:latest`
+- Pushes to Docker Hub with build cache optimization
+- Requires secrets: `DOCKERHUB_USERNAME`, `DOCKERHUB_TOKEN`
+
+**7. Deploy Production** (after Docker deploy or manual trigger)
+- SSHs into VPS using `appleboy/ssh-action`
+- Runs: `docker compose down --rmi all && docker compose up -d --pull always`
+- Requires secrets: `VPS_HOST`, `VPS_USERNAME`, `SSH_PRIVATE_KEY`, `VPS_PATH`
+
+### Workflow Triggers
+- **Push to main** (src/**, tests/**): Full pipeline with release + deployment
+- **Pull requests**: Lint, format, and test only (no release/deploy)
+- **Manual dispatch**: Available for production deployment
+
+### Required GitHub Secrets
+- `DISCORD_TOKEN`: Bot token for command registration
+- `APPLICATION_ID`: Discord app ID for command registration
+- `DOCKERHUB_USERNAME`: Docker Hub username
+- `DOCKERHUB_TOKEN`: Docker Hub access token
+- `VPS_HOST`: Production server hostname/IP
+- `VPS_USERNAME`: SSH user for VPS
+- `SSH_PRIVATE_KEY`: Private key for SSH authentication
+- `VPS_PATH`: Path to docker-compose.yml on VPS
+
+### Release Configuration
+Semantic-release plugins (`.releaserc.json`):
+- Commit analyzer + release notes generator
+- Changelog generation
+- NPM version bump (publish disabled)
+- Git asset commits (package.json, CHANGELOG.md)
+- GitHub release creation
 
 ## Critical Implementation Details
 
@@ -118,3 +191,38 @@ Optional:
 
 **Modify AI behavior:**
 Edit system prompt in `getAIReply()` in `src/util/util.js`. Mood mapping to image sets is at bottom of function.
+
+## Docker Deployment
+
+### Local Docker Build and Run
+```bash
+# Build image
+docker build -t amano-discord-bot:latest .
+
+# Run with .env file (recommended)
+docker run --env-file .env --name amano-discord-bot --restart unless-stopped -d amano-discord-bot:latest
+
+# Or with explicit environment variables
+docker run -e DISCORD_TOKEN=xxx -e APPLICATION_ID=xxx -e OPENAI_API_KEY=xxx \
+  --name amano-discord-bot --restart unless-stopped -d amano-discord-bot:latest
+```
+
+### Docker Compose (Development)
+```bash
+# Create .env file first with required vars
+docker compose up --build
+```
+
+### Docker Image Details
+- Base: `node:lts-bookworm-slim` (Debian-based, minimal footprint)
+- Non-root user: `appuser` for security
+- Production deps only: `npm ci --omit=dev`
+- Entry point: `node src/index.js`
+- Multi-platform support: linux/amd64, linux/arm64
+
+### Production Deployment Pattern
+The VPS deployment uses docker-compose with the following strategy:
+1. `docker compose down --rmi all` - Stop and remove old containers/images
+2. `docker compose up -d --pull always` - Pull latest image and start detached
+3. Compose file loads `.env` from VPS deployment directory
+4. Image pulled: `dockerhub_username/amano-discord-bot:latest`
