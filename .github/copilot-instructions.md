@@ -1,5 +1,21 @@
 # Copilot Instructions for Amano Discord Bot
 
+## ⚠️ Critical: Commit Message Requirements
+
+**ALL commits MUST follow Conventional Commits format or CI/CD will fail.**
+
+Format: `type(scope): description`
+
+Required types: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `chore`
+
+Examples:
+- `feat(commands): add meme randomizer`
+- `fix(services): resolve message cache race condition`
+- `docs(README): update setup instructions`
+- `chore(deps): update discord.js to v14.16`
+
+**NEVER use generic messages like "Initial plan", "Update files", "WIP", etc.** These will fail commitlint validation in CI/CD pipeline.
+
 ## Architecture Overview
 
 This is a Discord.js bot with a service-oriented architecture using dependency injection via a singleton `ServiceContainer` (`src/services/serviceContainer.js`). Services are registered at startup in `src/index.js` and resolved throughout the application.
