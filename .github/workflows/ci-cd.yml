@@ -1,64 +1,21 @@
-name: "CI/CD Pipeline"
+name: "CI/CD"
 
 on:
   push:
     branches:
       - main
-    paths:
-      - 'src/**'
-      - 'tests/**'
   pull_request:
     branches:
       - main
-    paths:
-      - 'src/**'
-      - 'tests/**'
   workflow_dispatch:
 
 jobs:
-  commit-lint:
-    name: Run the Commit Linter
+  build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          ref: ${{ github.head_ref || github.ref_name }}
-
-      - name: Setup node
-        uses: actions/setup-node@v4
-        with:
-          node-version: lts/*
-          cache: npm
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Print versions
-        run: |
-          git --version
-          node --version
-          npm --version
-          npx commitlint --version
-
-      - name: Validate current commit (last commit) with commitlint
-        if: github.event_name == 'push'
-        run: npx commitlint --last --verbose
-
-      - name: Validate PR commits with commitlint
-        if: github.event_name == 'pull_request'
-        run: npx commitlint --from ${{ github.event.pull_request.base.sha }} --to ${{ github.event.pull_request.head.sha }} --verbose
-
-  lint-and-format:
-    name: Lint and Format the Code
-    needs: commit-lint
-    if: github.event_name == 'pull_request'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -68,132 +25,21 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
-
+        
       - name: Run ESLint
         run: npm run lint
 
       - name: Run Prettier (Check only)
         run: npm run format:check
-
-  test:
-    name: Unit Tests
-    needs: lint-and-format
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4 
-        with:
-          node-version: lts/*
-          cache: npm
-
-      - name: Install dependencies
-        run: npm ci
-
+        
       - name: Run tests
         run: npm test
 
-  release:
-    name: Create Release
-    needs: [commit-lint, test]
-    if: always() && github.event_name == 'push' && github.ref == 'refs/heads/main' && (needs.commit-lint.result == 'success' && (needs.test.result == 'success' || needs.test.result == 'skipped'))
-    runs-on: ubuntu-latest
-    outputs:
-      new_release_published: ${{ steps.semantic.outputs.new_release_published }}
-      new_release_version: ${{ steps.semantic.outputs.new_release_version }}
-    permissions:
-      contents: write # to be able to publish a GitHub release
-      issues: write # to be able to comment on released issues
-      pull-requests: write # to be able to comment on released pull requests
-      id-token: write # to enable use of OIDC for trusted publishing and npm provenance
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: lts/*
-          cache: npm
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Verify the integrity of provenance attestations and registry signatures for installed dependencies
-        run: npm audit signatures
-
-      - name: Configure Git
-        run: |
-          git config --local user.name "github-actions[bot]"
-          git config --local user.email "github-actions[bot]@users.noreply.github.com"
-
-      - name: Run Semantic Release
-        id: semantic
-        uses: cycjimmy/semantic-release-action@v4
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  deploy-discord-commands:
-    name: Deploy Discord Commands
-    needs: release
-    if: always() && needs.release.result == 'success' && needs.release.outputs.new_release_published == 'true'
+  deploy:
+    needs: build
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 1
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: lts/*
-          cache: npm
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Deploy commands
-        env:
-          DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}
-          APPLICATION_ID: ${{ secrets.APPLICATION_ID }}
-        run: npm run deploy
-
-      - name: Run script to update README command documentation
-        run: npm run docs:commands
-
-      - name: Commit files
-        id: commit
-        run: |
-          git config --local user.name "github-actions[bot]"
-          git config --local user.email "github-actions[bot]@users.noreply.github.com"
-          git add README.md
-          git diff --staged --quiet || git commit -m "docs(README): update command docs"
-
-      - name: Push changes
-        if: steps.commit.outcome == 'success' && steps.commit.conclusion == 'success'
-        uses: ad-m/github-push-action@master
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          force: true
-
-  deploy-docker:
-    name: Build and Push Image to Docker Hub
-    needs: release
-    if: always() && needs.release.result == 'success' && needs.release.outputs.new_release_published == 'true'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 1
-
       - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
@@ -209,25 +55,17 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v6
         with:
-          push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}:${{ needs.release.outputs.new_release_version }},${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}:latest
-          cache-from: type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}:buildcache
-          cache-to: type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}:buildcache,mode=max
           platforms: linux/amd64,linux/arm64
-          
-  deploy-production:
-      name: Deploy to Production Server
-      needs: deploy-docker
-      if: always() && (github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref == 'refs/heads/main' && needs.deploy-docker.result == 'success'))
-      runs-on: ubuntu-latest
-      steps:
-        - name: Restart/redeploy the app on the VPS
-          uses: appleboy/ssh-action@v1.0.3
-          with:
-            host: ${{ secrets.VPS_HOST }}
-            username: ${{ secrets.VPS_USERNAME }}
-            key: ${{ secrets.SSH_PRIVATE_KEY }}
-            script: |
-              cd ${{ secrets.VPS_PATH }}
-              docker compose -f compose.yml -p amano-bot down --rmi all
-              docker compose -f compose.yml -p amano-bot up -d --pull always
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}:latest
+
+      - name: Deploy the app to production server
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd ${{ secrets.VPS_PATH }}
+            docker compose -f compose.yml -p amano-bot down --rmi all
+            docker compose -f compose.yml -p amano-bot up -d --pull always
