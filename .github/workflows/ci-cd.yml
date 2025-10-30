@@ -218,7 +218,7 @@ jobs:
   deploy-production:
       name: Deploy to Production Server
       needs: deploy-docker
-      if: always() && github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref == 'refs/heads/main' && (needs.deploy-docker.result == 'success' || needs.deploy-docker.result == 'skipped'))
+      if: always() && (github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref == 'refs/heads/main' && needs.deploy-docker.result == 'success'))
       runs-on: ubuntu-latest
       steps:
         - name: Restart/redeploy the app on the VPS
