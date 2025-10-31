@@ -130,9 +130,11 @@ Then edit `.env` to include your credentials:
 ```
 DISCORD_TOKEN=your_bot_token_here
 APPLICATION_ID=your_application_id_here
-# Optional
+# Optional - for AI-powered responses (fallback to generic replies if not provided)
 OPENAI_API_KEY=your_openai_key_here
+# Optional - defaults to 20
 MAX_MESSAGE_LIMIT=20
+# Optional - defaults to development
 NODE_ENV=development
 ```
 
@@ -196,12 +198,12 @@ docker run --env-file .env \
   -d amano-discord-bot:latest
 ```
 
-Or run by passing environment variables directly:
+Or run by passing environment variables directly (OPENAI_API_KEY is optional):
 
 ```bash
 docker run -e DISCORD_TOKEN=your_token \
   -e APPLICATION_ID=your_application_id \
-  -e OPENAI_API_KEY=your_openai_key \  # Optional, can be omitted
+  -e OPENAI_API_KEY=your_openai_key \
   -e NODE_ENV=production \
   --name amano-discord-bot \
   --restart unless-stopped \
