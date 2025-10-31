@@ -87,12 +87,19 @@ export function getGenericMessageReply() {
 }
 
 /**
- * Returns a Promise containing an AI generated reply
+ * Returns a Promise containing an AI generated reply, or falls back to generic reply if OpenAI is not available
  *
  * @returns {Promise<string>} Reply content
  */
 export async function getAIReply(message) {
 	const openAI = serviceContainer.resolve("openAI");
+
+	// If OpenAI is not configured, fall back to generic reply
+	if (!openAI) {
+		console.log("OpenAI not configured, using generic reply");
+		return getGenericMessageReply();
+	}
+
 	const messageService = serviceContainer.resolve("messageService");
 	const userService = serviceContainer.resolve("userService");
 
