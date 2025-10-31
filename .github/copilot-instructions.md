@@ -1,40 +1,1761 @@
 # Copilot instructions for this repo
 
-Purpose: Help AI agents contribute productively to this Node.js Discord bot (ESM, discord.js v14, Sequelize, OpenAI) with minimal context hunting.
+**Purpose**: Help AI agents and contributors productively work on this Node.js Discord bot (ESM, discord.js v14, Sequelize, OpenAI) with comprehensive guidance and minimal context hunting.
+
+## Table of Contents
+- [Architecture and flow](#architecture-and-flow)
+- [Conventions and patterns](#conventions-and-patterns)
+- [Local development setup](#local-development-setup)
+- [Workflows you'll actually run](#workflows-youll-actually-run)
+- [CI/CD pipeline](#cicd-pipeline)
+- [How to extend safely](#how-to-extend-safely)
+- [Testing guidelines](#testing-guidelines)
+- [Code quality and style](#code-quality-and-style)
+- [Gotchas and tips](#gotchas-and-tips)
+- [Troubleshooting](#troubleshooting)
+- [Performance considerations](#performance-considerations)
+- [Security best practices](#security-best-practices)
 
 ## Architecture and flow
-- Entry: `src/index.js` initializes DB (`initDB` → `loadModels` → `sequelize.sync`), registers services in `services/serviceContainer.js`, creates Discord client with intents, loads `events/` and `commands/` via `util/loaders.js`, wires them in `util/registerEvents.js`, then logs in.
-- Commands: Each file in `src/commands/**` exports default `{ data, execute }`. They’re validated by `commands/index.js` (zod). Loaded into a `Map` keyed by `data.name`. Slash commands are dispatched by an auto-wired `InteractionCreate` handler in `registerEvents.js`.
-- Events: Each file in `src/events/**` exports default `{ name, once?, execute }` validated by `events/index.js` (zod). `messageCreate` delegates to the `getMessageReply` function in `src/util/util.js`.
-- Messaging logic: `getMessageReply()` replies if message includes "ernest" (AI path) or (if a swear is detected) passes a per-channel chance gate from `ChannelService`.
-- AI replies: `getAIReply` (in `src/util/util.js`) uses OpenAI chat (model: `gpt-4o-mini`) to return JSON `{ mood, content }`, chooses an Amano image by `mood`, and optionally persists history via `MessageService`.
-- Summaries: `MessageService` tracks per-guild history with `QuickLRU` + `Mutex`; when `MAX_MESSAGE_LIMIT` is reached, it summarizes with `gpt-4o`, stores `Message` (fields: `guildId`, `content` summary, `mimic`).
-- Persistence: `src/db/db.js` uses SQLite in-memory when `NODE_ENV != 'production'`; in production reads `DB_*` env vars. `dbInit.js` loads `models/**` (ModelLoader pattern) and syncs; dev uses `force: true` (drops schema).
+
+This bot follows a modular, dependency-injected architecture with clear separation of concerns:
+
+### Application entry point (`src/index.js`)
+The entry point orchestrates the bot's initialization in this order:
+
+1. **Database initialization**: `initDB()` → `loadModels()` → `sequelize.sync()`
+   - Dynamically loads all model files from `src/models/`
+   - Syncs models with the database (drops tables in development mode)
+
+2. **Service registration**: Instances registered in `serviceContainer` (singleton pattern)
+   - `openAI`: OpenAI client instance
+   - `channelService`: Manages channel-specific settings (reply chances)
+   - `messageService`: Handles message history tracking and AI summaries
+   - `userService`: Manages user preferences (tracking opt-in/opt-out)
+
+3. **Discord client creation**: Client initialized with required intents:
+   ```javascript
+   const client = new Client({
+     intents: [
+       GatewayIntentBits.DirectMessages,
+       GatewayIntentBits.Guilds,
+       GatewayIntentBits.GuildMessages,
+       GatewayIntentBits.MessageContent, // Required for reading message content
+     ],
+     partials: [Partials.Channel], // Required for DM support
+   });
+   ```
+
+4. **Dynamic loading**: Commands and events loaded via `util/loaders.js`
+   - Commands stored in a `Map<string, Command>` keyed by `data.name`
+   - Events stored as an array of `{ name, once?, execute }` objects
+
+5. **Event registration**: `registerEvents()` wires commands and events to the Discord client
+   - Auto-creates an `InteractionCreate` handler for slash commands
+   - Registers all event handlers with appropriate `on` or `once` listeners
+
+6. **Login**: Bot authenticates with Discord using `DISCORD_TOKEN`
+
+### Commands system
+Each command file in `src/commands/**` exports a default object:
+
+```javascript
+/** @type {import('./index.js').Command} */
+export default {
+  data: {
+    name: "commandname",
+    description: "Command description",
+    options: [...], // Command options (optional)
+    default_member_permissions: "...", // Required permissions (optional)
+    contexts: [...], // Where command can be used (optional)
+  },
+  async execute(interaction) {
+    // Command logic here
+    // Use interaction.deferReply() for long-running operations
+    // Use serviceContainer.resolve('serviceName') to access services
+  },
+};
+```
+
+**Validation flow**:
+- `commands/index.js` defines a zod schema that validates command structure at load time
+- Invalid commands cause the bot to fail fast during startup
+- Commands are loaded into a `Map` keyed by `data.name` for O(1) lookup
+
+**Dispatch flow**:
+- `InteractionCreate` event handler checks `interaction.isCommand()`
+- Retrieves command from the Map using `interaction.commandName`
+- Calls `command.execute(interaction)` with error handling
+
+### Events system
+Each event file in `src/events/**` exports a default object:
+
+```javascript
+/** @type {import('./index.js').Event<Events.EventName>} */
+export default {
+  name: Events.EventName, // e.g., Events.MessageCreate, Events.Ready
+  once: false, // true for one-time events like Ready (optional, defaults to false)
+  async execute(...args) {
+    // Event handler logic
+    // Args vary by event type (e.g., message for MessageCreate)
+  },
+};
+```
+
+**Special events**:
+- `messageCreate`: Delegates to `getMessageReply()` in `src/util/util.js`
+- `ready`: Logs bot startup and connection info
+- `InteractionCreate`: Auto-generated by `registerEvents()` for command dispatch
+
+### Messaging logic flow
+
+The `getMessageReply()` function in `src/util/util.js` implements the bot's reply logic:
+
+```
+1. Check if message contains "ernest" (case-insensitive)
+   YES → Send typing indicator → Call getAIReply() → Return AI response
+   NO → Continue to step 2
+
+2. Check if message contains swear words (hasSwear())
+   NO → Return false (don't reply)
+   YES → Continue to step 3
+
+3. Fetch channel reply chance from database
+4. Generate random number 1-100
+5. If random number <= reply chance:
+   - Send typing indicator
+   - Return generic message reply (random quote + random Amano image)
+   Otherwise, return false (don't reply)
+```
+
+### AI reply system (`getAIReply`)
+
+Located in `src/util/util.js`, this function handles AI-powered responses:
+
+**Process**:
+1. Fetch message history and user preferences in parallel using `Promise.allSettled()`
+2. Build OpenAI chat completion request:
+   - Model: `gpt-4o-mini`
+   - Max tokens: 500
+   - Response format: JSON object
+   - System prompt defines Ernest Amano's personality and rules
+   - Include message history for context
+   - Add current user message
+
+3. Parse AI response JSON: `{ mood, content }`
+4. If user has tracking enabled, save messages to history
+5. Select appropriate Amano image based on mood:
+   - normal → AMANO_NORMAL images
+   - placating → AMANO_PLACATING images
+   - sad → AMANO_SAD images
+   - angry → AMANO_ANGRY images
+   - sweating → AMANO_SWEATING images
+
+6. Return `{ content, files: [AttachmentBuilder] }`
+7. On error, fall back to generic reply
+
+### Message summaries
+
+`MessageService` manages conversation history and summaries:
+
+**Storage mechanism**:
+- Uses `QuickLRU` for per-guild in-memory message caching (fast, size-limited)
+- Uses `Mutex` to prevent race conditions during concurrent access
+- Guild-specific message arrays with max size `MAX_MESSAGE_LIMIT`
+
+**Summary trigger**:
+- When guild message count reaches `MAX_MESSAGE_LIMIT`
+- Calls OpenAI `gpt-4o` to generate a concise summary
+- Stores summary in `Message` model with fields:
+  - `guildId`: Guild identifier
+  - `content`: AI-generated summary text
+  - `mimic`: Summary role for context preservation
+
+**Purpose**: Keeps conversation context manageable while preserving important history
+
+### Persistence layer
+
+**Development mode** (`NODE_ENV != 'production'`):
+- Uses SQLite in-memory database (`:memory:`)
+- Database recreated on every restart
+- `force: true` in `sequelize.sync()` drops all tables and recreates them
+- Perfect for testing without data pollution
+
+**Production mode** (`NODE_ENV=production`):
+- Reads `DB_*` environment variables (name, user, password, host, dialect)
+- Supports MySQL and PostgreSQL
+- `force: false` preserves existing data
+- Tables are created if they don't exist, but data persists
+
+**Model loading**:
+- `dbInit.js` uses `loadModels()` to dynamically import all files from `src/models/`
+- Each model file exports a function: `(sequelize) => sequelize.define(...)`
+- Models auto-register with Sequelize
+- Pattern allows easy addition of new models without manual registration
 
 ## Conventions and patterns
-- ESM only (`type: module`). Dynamic loading uses `new URL('path/', import.meta.url)` and default exports only; `loaders.js` ignores `index.js` in folders.
-- Schema guards: zod schemas in `commands/index.js` and `events/index.js` validate shapes at load time (fail fast).
-- DI: Register shared instances in `serviceContainer` in `src/index.js` (e.g., `openAI`, `channelService`, `messageService`, `userService`). Resolve via `serviceContainer.resolve(name)` inside commands/util.
-- Config: `src/config.js` loads `.env` from repo root and exposes constants (e.g., `MAX_MESSAGE_LIMIT`, `MESSAGE_REPLY_CHANCE`).
-- Content: `swears.js` holds regex patterns; `quotes.js` and `images.js` supply reply text/assets.
 
-## Workflows you’ll actually run
-- Local dev: `npm install` → create `.env` (see README) → `npm run deploy` (register slash commands) → `npm start` (loads env via `--require dotenv/config`).
-- Lint/format: `npm run lint`, `npm run format` (`eslint-config-neon` + Prettier). Tests are placeholder.
-- Docs sync: `npm run docs:commands` regenerates the Commands table in `README.md` from files in `src/commands/**`.
-- CI/CD: Commit messages must follow Conventional Commits (`commitlint`). On push to `main`, `semantic-release` creates releases; then the pipeline deploys slash commands, updates `README.md`, builds and pushes Docker image, and can deploy to a VPS via SSH. Secrets needed: `DISCORD_TOKEN`, `APPLICATION_ID`, Docker Hub creds, VPS SSH.
+### ESM modules
+- **Strict ESM**: `package.json` has `"type": "module"` - all files are ES modules
+- **Dynamic imports**: Use `new URL('path/', import.meta.url)` for file path resolution
+- **Default exports only**: All commands, events, and models use default exports
+- **No CommonJS**: Cannot use `require()`, `module.exports`, or `__dirname`
 
-## How to extend safely (examples in repo)
-- Add a command: Create `src/commands/mycmd.js` default export with `{ data, execute }` (see `ping.js`, `chance.js`). Run `npm run deploy` to register. CI also deploys on release.
-- Add an event: Create `src/events/myEvent.js` default export `{ name: Events.X, once?, execute }` (see `ready.js`, `messageCreate.js`). No manual wiring.
-- Add a model: Create `src/models/foo.js` default export `(sequelize) => sequelize.define(...)` (see `channel.js`, `user.js`). `initDB` will load and sync it.
-- Use services: Resolve with `serviceContainer.resolve('channelService'|'userService'|'messageService'|'openAI')`. Don’t instantiate new clients in handlers.
+Example of ESM file path resolution:
+```javascript
+import { URL } from 'node:url';
+const events = await loadEvents(new URL('events/', import.meta.url));
+```
+
+### Schema validation
+- **Commands**: `commands/index.js` defines zod schema for command structure
+- **Events**: `events/index.js` defines zod schema for event structure
+- **Models**: `models/index.js` defines zod schema for model loaders
+- **Fail fast**: Invalid structures throw errors during app initialization, not at runtime
+- **Type safety**: JSDoc comments provide IDE type hints
+
+### Dependency injection
+
+The `ServiceContainer` class (singleton pattern in `services/serviceContainer.js`) manages all shared instances:
+
+**Registration** (in `src/index.js`):
+```javascript
+serviceContainer.register('openAI', new OpenAI({ apiKey: process.env.OPENAI_API_KEY }));
+serviceContainer.register('channelService', new ChannelService(sequelize.models.Channel));
+serviceContainer.register('messageService', new MessageService(...));
+serviceContainer.register('userService', new UserService(sequelize.models.User));
+```
+
+**Resolution** (in commands/util):
+```javascript
+const channelService = serviceContainer.resolve('channelService');
+const messageService = serviceContainer.resolve('messageService');
+const userService = serviceContainer.resolve('userService');
+const openAI = serviceContainer.resolve('openAI');
+```
+
+**Benefits**:
+- Single source of truth for service instances
+- Easy to mock for testing
+- Avoids circular dependencies
+- Centralized configuration
+
+### Configuration management
+
+`src/config.js` centralizes all configuration:
+
+```javascript
+import dotenv from 'dotenv';
+dotenv.config({ path: path.join(rootPath, '.env') });
+
+export const MESSAGE_REPLY_CHANCE = 25; // Default channel reply chance
+export const MESSAGE_REPLY_IMAGE = "..."; // Default reply image URL
+export const MAX_MESSAGE_LIMIT = (() => {
+  const limit = parseInt(process.env.MAX_MESSAGE_LIMIT, 10);
+  return isNaN(limit) ? 20 : limit;
+})();
+```
+
+**Best practices**:
+- Always provide sensible defaults
+- Validate and sanitize environment variables
+- Export constants, not raw `process.env` access
+- Document required vs optional variables
+
+### Content organization
+
+**Static content files**:
+- `swears.js`: Array of regex patterns for swear detection
+- `quotes.js`: Array of Ernest Amano quote strings
+- `images.js`: Object with mood-keyed arrays of image URLs
+
+**Why separate?**:
+- Easy to update content without touching logic
+- Can be replaced with database/API calls in the future
+- Clear separation of concerns
+
+### File naming and structure
+
+**Naming conventions**:
+- Models: `user.js`, `channel.js`, `message.js` (lowercase, singular)
+- Services: `userService.js`, `channelService.js` (camelCase, singular + Service)
+- Commands: Command name, e.g., `ping.js`, `chance.js` (lowercase)
+- Events: Event name, e.g., `ready.js`, `messageCreate.js` (camelCase matching Discord.js)
+- Utilities: Descriptive name, e.g., `loaders.js`, `util.js`, `deploy.js`
+
+**Directory structure**:
+```
+src/
+├── commands/         # Slash command handlers
+├── db/              # Database configuration and initialization
+├── events/          # Discord event handlers
+├── models/          # Sequelize model definitions
+├── services/        # Business logic services
+├── util/            # Utility functions and helpers
+├── config.js        # Configuration constants
+├── images.js        # Image URL constants
+├── quotes.js        # Quote text constants
+├── swears.js        # Swear detection patterns
+└── index.js         # Application entry point
+```
+
+### Error handling patterns
+
+**Command error handling**:
+```javascript
+async execute(interaction) {
+  try {
+    await interaction.deferReply(); // For long operations
+    // ... command logic
+    await interaction.editReply('Success!');
+  } catch (error) {
+    console.error(error);
+    const reply = { content: 'Something went wrong.', ephemeral: true };
+    if (interaction.deferred) {
+      await interaction.editReply(reply);
+    } else {
+      await interaction.reply(reply);
+    }
+  }
+}
+```
+
+**Event error handling**:
+```javascript
+async execute(message) {
+  try {
+    // ... event logic
+  } catch (error) {
+    console.error(error);
+    // Don't crash the bot - log and continue
+  }
+}
+```
+
+**Service error handling**:
+- Services throw errors for the caller to handle
+- Caller decides whether to retry, fall back, or fail
+- Always log errors with context
+
+## Local development setup
+
+### Prerequisites
+1. **Node.js 20+ LTS**: Download from [nodejs.org](https://nodejs.org/)
+2. **npm** (comes with Node.js) or **yarn**
+3. **Discord bot token**: See README.md "Obtaining a Discord Bot Token" section
+4. **OpenAI API key**: See README.md "Obtaining an OpenAI API Key" section
+5. **Git**: For version control
+
+### Step-by-step setup
+
+**1. Clone the repository**:
+```bash
+git clone https://github.com/grantchatterton/amano-discord-bot.git
+cd amano-discord-bot
+```
+
+**2. Install dependencies**:
+```bash
+npm install
+```
+
+**3. Create environment file**:
+```bash
+cp .env.example .env
+```
+
+**4. Edit `.env` with your credentials**:
+```env
+# Required
+DISCORD_TOKEN=your_discord_bot_token_here
+APPLICATION_ID=your_application_id_here
+OPENAI_API_KEY=your_openai_api_key_here
+
+# Optional
+NODE_ENV=development
+MAX_MESSAGE_LIMIT=20
+```
+
+**5. Register slash commands** (required before first run):
+```bash
+npm run deploy
+```
+
+This registers your slash commands with Discord. You'll see output like:
+```
+Successfully registered 6 application commands.
+```
+
+**6. Start the bot**:
+```bash
+npm start
+```
+
+You should see:
+```
+Executing (default): ...  (database sync logs)
+Ready! Logged in as YourBotName#1234
+```
+
+**7. Invite the bot to your test server**:
+- Go to Discord Developer Portal → OAuth2 → URL Generator
+- Select scopes: `bot`, `applications.commands`
+- Select permissions: `Send Messages`, `Embed Links`, `Attach Files`, `Read Message History`, `Read Messages/View Channels`
+- Copy the generated URL and open in browser
+- Select your test server and authorize
+
+### Verifying the setup
+
+Test these commands in your Discord server:
+1. `/ping` - Should reply "Pong!"
+2. `/foo` - Should reply "bar"
+3. `/roll` - Should roll a die
+4. Send a message containing "ernest" - Bot should reply with AI-generated response
+5. Send a message with a swear word (check `src/swears.js`) - Bot might reply based on channel chance
+
+### Development workflow
+
+**Typical development cycle**:
+1. Make code changes
+2. Restart the bot (`Ctrl+C` then `npm start`)
+3. Test in Discord
+4. Check console logs for errors
+5. Lint and format: `npm run lint && npm run format`
+6. Commit changes: `git commit -m "feat: add new feature"`
+
+**Hot reload**: The bot doesn't have hot reload. You must restart after changes.
+
+**Database reset**: Dev database is in-memory and recreated on every restart, so all data is lost.
+
+### Troubleshooting setup
+
+**"Invalid token" error**:
+- Double-check `DISCORD_TOKEN` in `.env` (no spaces, no quotes)
+- Regenerate token in Discord Developer Portal if needed
+
+**"Missing Access" error when testing commands**:
+- Re-invite bot with correct permissions
+- Ensure bot role is above any roles it needs to interact with
+
+**Commands not showing in Discord**:
+- Run `npm run deploy` to register commands
+- Wait 5-10 minutes for global commands to propagate
+- Or use guild commands for instant updates (modify `deploy.js`)
+
+**"MODULE_NOT_FOUND" errors**:
+- Run `npm install` to ensure all dependencies are installed
+- Delete `node_modules` and `package-lock.json`, then `npm install` again
+
+**OpenAI API errors**:
+- Verify `OPENAI_API_KEY` is correct
+- Check OpenAI account has available credits
+- Check API key has proper permissions
+
+## Workflows you'll actually run
+
+### Local development
+```bash
+# Install dependencies (first time only)
+npm install
+
+# Create and configure .env file
+cp .env.example .env
+# Edit .env with your tokens
+
+# Register slash commands with Discord
+npm run deploy
+
+# Start the bot
+npm start
+```
+
+**When to run `npm run deploy`**:
+- After adding/modifying/removing a command
+- After changing command options, descriptions, or permissions
+- On first setup
+- CI also runs this automatically on releases
+
+### Linting and formatting
+
+**ESLint** (checks code quality and catches errors):
+```bash
+npm run lint              # Check for issues
+npm run lint:fix          # Auto-fix issues
+```
+
+**Prettier** (formats code consistently):
+```bash
+npm run format            # Format all files
+npm run format:check      # Check if files are formatted
+```
+
+**Pre-commit hooks** (via Husky):
+- Automatically runs `eslint --fix` and `prettier --write` on staged files
+- Configured in `package.json` under `lint-staged`
+- Prevents committing unformatted/linted code
+
+**ESLint config**: Uses `eslint-config-neon` (opinionated, strict)
+- Enforces consistent code style
+- Catches common bugs
+- Disables some overly strict rules
+
+### Documentation generation
+
+**Command documentation**:
+```bash
+npm run docs:commands
+```
+
+This script (`src/util/generateCmdDocs.js`):
+1. Scans all files in `src/commands/`
+2. Extracts command name and description
+3. Updates the Commands table in `README.md`
+4. Maintains the section between `<!-- BEGIN COMMANDS SECTION -->` and `<!-- END COMMANDS SECTION -->`
+
+**When to run**:
+- After adding a new command
+- After changing command description
+- CI runs this automatically and commits changes
+
+### Testing
+
+**Currently**: Tests are placeholder (`npm test` just echoes "No tests specified!")
+
+**Future testing approach**:
+- Unit tests: Jest or Vitest for services, utilities
+- Integration tests: Test command execute functions with mocked interactions
+- E2E tests: Real Discord bot in test server (manual for now)
+
+### Deployment
+
+**Deploy script**:
+```bash
+npm run deploy
+```
+
+Uses `src/util/deploy.js` to register commands with Discord:
+- Loads all commands from `src/commands/`
+- Validates command structures
+- Converts to Discord API format
+- Registers globally via REST API
+
+**Environment variables required**:
+- `DISCORD_TOKEN`: Bot authentication
+- `APPLICATION_ID`: Your Discord application ID
+
+**Output**:
+```
+Refreshing 6 application commands...
+Successfully registered 6 application commands.
+```
+
+### Git commit workflow
+
+**Conventional Commits** (enforced by `commitlint`):
+```bash
+git add .
+git commit -m "feat: add new roll command"     # New feature
+git commit -m "fix: resolve crash on invalid input"  # Bug fix
+git commit -m "docs: update README"            # Documentation
+git commit -m "refactor: simplify message logic"  # Code refactoring
+git commit -m "chore: update dependencies"     # Maintenance
+```
+
+**Commit types**:
+- `feat`: New feature
+- `fix`: Bug fix
+- `docs`: Documentation only
+- `style`: Code style/formatting
+- `refactor`: Code change without behavior change
+- `perf`: Performance improvement
+- `test`: Adding/updating tests
+- `chore`: Maintenance tasks
+
+**Husky hooks**:
+- `pre-commit`: Runs lint-staged (ESLint + Prettier on staged files)
+- `commit-msg`: Runs commitlint to validate commit message format
+
+## CI/CD pipeline
+
+Located in `.github/workflows/ci-cd.yml`, the pipeline has two main jobs:
+
+### Build job (runs on all branches)
+
+Triggered by:
+- Push to `main` branch
+- Pull requests targeting `main`
+- Manual workflow dispatch
+
+Steps:
+1. **Checkout code**: `actions/checkout@v4` with full git history (`fetch-depth: 0`)
+2. **Setup Node.js**: `actions/setup-node@v4` with LTS version and npm cache
+3. **Install dependencies**: `npm ci` (clean install from lock file)
+4. **Run ESLint**: `npm run lint` (fails on warnings/errors)
+5. **Run Prettier check**: `npm run format:check` (fails if files aren't formatted)
+6. **Run tests**: `npm test` (currently placeholder, always passes)
+
+**Purpose**: Ensure code quality and prevent broken builds from merging
+
+### Deploy job (runs only on push to main)
+
+Triggered by:
+- Push to `main` branch (after build job passes)
+
+Steps:
+1. **Login to Docker Hub**: Uses secrets `DOCKERHUB_USERNAME` and `DOCKERHUB_TOKEN`
+2. **Set up QEMU**: For multi-platform builds (ARM64, AMD64)
+3. **Set up Docker Buildx**: Advanced Docker builder with multi-platform support
+4. **Build and push Docker image**:
+   - Platforms: `linux/amd64`, `linux/arm64`
+   - Tag: `username/amano-discord-bot:latest`
+   - Automatically pushes to Docker Hub
+5. **Deploy to production server**:
+   - Uses `appleboy/ssh-action` to SSH into VPS
+   - Runs deployment script on remote server:
+     ```bash
+     cd $VPS_PATH
+     docker compose -f compose.yml -p amano-bot down --rmi all
+     docker compose -f compose.yml -p amano-bot up -d --pull always
+     ```
+   - Downloads latest image and restarts bot
+
+### Semantic Release (runs as part of pipeline)
+
+Configured in `.releaserc.json`, uses `semantic-release` to:
+1. Analyze commits since last release
+2. Determine version bump (major.minor.patch) based on commit types
+3. Generate changelog from commit messages
+4. Update `package.json`, `package-lock.json`, `CHANGELOG.md`
+5. Create Git tag and GitHub release
+6. Push changes back to repository
+
+**Version bumps**:
+- `feat:` → minor version (1.0.0 → 1.1.0)
+- `fix:` → patch version (1.0.0 → 1.0.1)
+- `feat!:` or `BREAKING CHANGE:` → major version (1.0.0 → 2.0.0)
+
+**Plugins**:
+- `@semantic-release/commit-analyzer`: Determines release type
+- `@semantic-release/release-notes-generator`: Generates changelog
+- `@semantic-release/changelog`: Updates CHANGELOG.md
+- `@semantic-release/npm`: Updates package.json (doesn't publish to npm)
+- `@semantic-release/git`: Commits and pushes changes
+- `@semantic-release/github`: Creates GitHub release
+
+### Required secrets
+
+Configure these in GitHub repository settings → Secrets and variables → Actions:
+
+**Discord**:
+- `DISCORD_TOKEN`: Bot token for command deployment
+- `APPLICATION_ID`: Discord application ID
+
+**Docker Hub**:
+- `DOCKERHUB_USERNAME`: Docker Hub username
+- `DOCKERHUB_TOKEN`: Docker Hub access token (not password)
+
+**VPS deployment**:
+- `VPS_HOST`: Server IP or hostname
+- `VPS_USERNAME`: SSH username
+- `VPS_PATH`: Path to docker-compose.yml on server
+- `SSH_PRIVATE_KEY`: SSH private key for authentication
+
+**Note**: The bot itself needs `DISCORD_TOKEN`, `OPENAI_API_KEY`, and other env vars configured on the production server (usually in a `.env` file or docker-compose environment section).
+
+## How to extend safely
+
+### Adding a new command
+
+**1. Create command file** (`src/commands/mycommand.js`):
+```javascript
+import { ApplicationCommandOptionType } from 'discord.js';
+import serviceContainer from '../services/serviceContainer.js';
+
+/** @type {import('./index.js').Command} */
+export default {
+  data: {
+    name: 'mycommand',
+    description: 'Description of what this command does',
+    options: [
+      {
+        name: 'input',
+        description: 'An input parameter',
+        type: ApplicationCommandOptionType.String,
+        required: true,
+      },
+    ],
+  },
+  async execute(interaction) {
+    // For long operations, defer the reply first
+    await interaction.deferReply();
+
+    // Get input
+    const input = interaction.options.getString('input');
+
+    // Access services if needed
+    const channelService = serviceContainer.resolve('channelService');
+
+    try {
+      // Your command logic here
+      const result = await doSomething(input);
+
+      // Reply with result
+      await interaction.editReply(`Result: ${result}`);
+    } catch (error) {
+      console.error(error);
+      await interaction.editReply('Something went wrong!');
+    }
+  },
+};
+```
+
+**2. Register the command**:
+```bash
+npm run deploy
+```
+
+**3. Test in Discord**:
+- Commands should appear in the slash command menu
+- Test with valid and invalid inputs
+- Check console logs for errors
+
+**Command option types**:
+- `String`: Text input
+- `Integer`: Whole numbers
+- `Number`: Decimal numbers
+- `Boolean`: True/false
+- `User`: Mention a user
+- `Channel`: Select a channel
+- `Role`: Select a role
+- `Mentionable`: User or role
+
+**Best practices**:
+- Always validate user input
+- Use `interaction.deferReply()` for operations > 3 seconds
+- Provide clear error messages
+- Use ephemeral replies for errors: `{ content: '...', ephemeral: true }`
+- Check permissions before performing privileged operations
+
+**Examples in repo**: `ping.js` (simple), `chance.js` (with options and permissions), `roll.js` (with validation), `meme.js` (async with defer)
+
+### Adding a new event
+
+**1. Create event file** (`src/events/myevent.js`):
+```javascript
+import { Events } from 'discord.js';
+
+/** @type {import('./index.js').Event<Events.EventName>} */
+export default {
+  name: Events.GuildMemberAdd, // Discord.js event name
+  once: false, // true if this should only fire once
+  async execute(member) {
+    // Event handler logic
+    // Args depend on the event type
+    console.log(`${member.user.tag} joined ${member.guild.name}`);
+
+    try {
+      // Your event logic here
+      const channel = member.guild.systemChannel;
+      if (channel) {
+        await channel.send(`Welcome ${member}!`);
+      }
+    } catch (error) {
+      console.error(error);
+      // Don't throw - event handlers should not crash the bot
+    }
+  },
+};
+```
+
+**2. Restart the bot**:
+```bash
+npm start
+```
+
+**3. Trigger the event in Discord** and check console logs
+
+**Common Discord.js events**:
+- `Events.Ready`: Bot logged in (fires once)
+- `Events.MessageCreate`: New message sent
+- `Events.MessageDelete`: Message deleted
+- `Events.GuildMemberAdd`: User joined server
+- `Events.GuildMemberRemove`: User left server
+- `Events.InteractionCreate`: Any interaction (auto-handled for commands)
+
+**Best practices**:
+- Wrap logic in try-catch to prevent bot crashes
+- Don't perform heavy operations directly - queue them
+- Check for null/undefined before accessing properties
+- Use `once: true` for events that should only fire once (like `Ready`)
+
+**Examples in repo**: `ready.js` (one-time event), `messageCreate.js` (recurring event with complex logic)
+
+### Adding a new model
+
+**1. Create model file** (`src/models/mything.js`):
+```javascript
+import { DataTypes } from 'sequelize';
+
+/**
+ * @type {import('./index.js').ModelLoader}
+ */
+export default (sequelize) => {
+  return sequelize.define('MyThing', {
+    id: {
+      type: DataTypes.INTEGER,
+      primaryKey: true,
+      autoIncrement: true,
+    },
+    name: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      unique: true,
+    },
+    value: {
+      type: DataTypes.INTEGER,
+      defaultValue: 0,
+      validate: {
+        min: 0,
+        max: 100,
+      },
+    },
+    metadata: {
+      type: DataTypes.JSON, // Store JSON data (objects/arrays)
+      allowNull: true,
+    },
+  }, {
+    timestamps: true, // Adds createdAt, updatedAt
+    tableName: 'my_things', // Optional: custom table name
+  });
+};
+```
+
+**2. Restart the bot** (model auto-loads):
+```bash
+npm start
+```
+
+**3. Access the model** via Sequelize:
+```javascript
+import { sequelize } from './db/db.js';
+const MyThing = sequelize.models.MyThing;
+
+// Create
+const thing = await MyThing.create({ name: 'test', value: 50 });
+
+// Find
+const things = await MyThing.findAll({ where: { value: { [Op.gte]: 25 } } });
+const thing = await MyThing.findOne({ where: { name: 'test' } });
+
+// Update
+await thing.update({ value: 75 });
+
+// Delete
+await thing.destroy();
+```
+
+**Common Sequelize data types**:
+- `DataTypes.STRING`: VARCHAR(255)
+- `DataTypes.TEXT`: Long text
+- `DataTypes.INTEGER`: Integer
+- `DataTypes.FLOAT`: Floating point
+- `DataTypes.BOOLEAN`: Boolean
+- `DataTypes.DATE`: Timestamp
+- `DataTypes.JSON`: JSON data (PostgreSQL, MySQL 5.7.8+, SQLite 3.9.0+)
+
+**Relationships**:
+```javascript
+// In model definition
+static associate(models) {
+  // One-to-many
+  models.User.hasMany(models.Message);
+  models.Message.belongsTo(models.User);
+
+  // Many-to-many
+  models.User.belongsToMany(models.Role, { through: 'UserRoles' });
+  models.Role.belongsToMany(models.User, { through: 'UserRoles' });
+}
+```
+
+**Best practices**:
+- Define indexes for frequently queried fields
+- Use validation rules to ensure data integrity
+- Use `allowNull: false` for required fields
+- Set appropriate default values
+- Use transactions for multi-step operations
+
+**Examples in repo**: `channel.js` (simple model), `user.js` (with boolean), `message.js` (with text field)
+
+### Adding a new service
+
+**1. Create service file** (`src/services/myService.js`):
+```javascript
+/**
+ * Service for managing MyThing entities.
+ * Provides business logic layer between database models and application code.
+ */
+class MyService {
+  /**
+   * @param {import('sequelize').ModelStatic} myThingModel - Sequelize MyThing model
+   */
+  constructor(myThingModel) {
+    this.myThingModel = myThingModel;
+  }
+
+  /**
+   * Get a thing by name.
+   * @param {string} name - Thing name
+   * @returns {Promise<object|null>} Thing object or null
+   */
+  async getThing(name) {
+    try {
+      const thing = await this.myThingModel.findOne({ where: { name } });
+      return thing;
+    } catch (error) {
+      console.error(`Error fetching thing: ${error}`);
+      throw error; // Let caller handle
+    }
+  }
+
+  /**
+   * Create or update a thing.
+   * @param {string} name - Thing name
+   * @param {number} value - Thing value
+   * @returns {Promise<object>} Created/updated thing
+   */
+  async setThing(name, value) {
+    try {
+      const [thing, created] = await this.myThingModel.findOrCreate({
+        where: { name },
+        defaults: { value },
+      });
+
+      if (!created) {
+        await thing.update({ value });
+      }
+
+      return thing;
+    } catch (error) {
+      console.error(`Error setting thing: ${error}`);
+      throw error;
+    }
+  }
+}
+
+export default MyService;
+```
+
+**2. Register service** in `src/index.js`:
+```javascript
+import MyService from './services/myService.js';
+
+// After initDB() and before creating client
+serviceContainer.register('myService', new MyService(sequelize.models.MyThing));
+```
+
+**3. Use service** in commands/events:
+```javascript
+const myService = serviceContainer.resolve('myService');
+const thing = await myService.getThing('example');
+```
+
+**Best practices**:
+- Services encapsulate business logic, not just database queries
+- Accept model instances in constructor (dependency injection)
+- Throw errors for the caller to handle (don't swallow)
+- Use JSDoc comments for IDE autocomplete
+- Keep services stateless (or minimal state)
+- Separate read operations from write operations when possible
+
+**Examples in repo**: `channelService.js`, `userService.js`, `messageService.js`
+
+### Modifying existing functionality
+
+**Before making changes**:
+1. Read the existing code and understand its purpose
+2. Check if other code depends on it (search for imports/usages)
+3. Consider backward compatibility
+4. Test thoroughly after changes
+
+**Safe modification pattern**:
+```javascript
+// Old code
+function doSomething(input) {
+  return input * 2;
+}
+
+// Add new parameter with default value (backward compatible)
+function doSomething(input, multiplier = 2) {
+  return input * multiplier;
+}
+```
+
+**Breaking changes** (requires major version bump):
+- Changing function signatures (removing/reordering parameters)
+- Changing return types
+- Removing exported functions/classes
+- Changing database schema (requires migration)
+
+## Testing guidelines
+
+### Current state
+- No automated tests implemented yet
+- Tests are manual via Discord bot interaction
+- `npm test` is a placeholder
+
+### Manual testing checklist
+
+**For new commands**:
+- [ ] Command appears in Discord slash command menu
+- [ ] Command executes without errors (check console logs)
+- [ ] Required options are enforced
+- [ ] Optional options work when omitted
+- [ ] Invalid inputs show appropriate error messages
+- [ ] Permissions are checked correctly
+- [ ] Ephemeral replies work for sensitive data
+- [ ] Deferred replies work for long operations
+
+**For new events**:
+- [ ] Event fires when expected
+- [ ] Event handler doesn't crash the bot
+- [ ] Bot continues processing other events after errors
+- [ ] Event logic works correctly (check console logs and Discord)
+
+**For database changes**:
+- [ ] Model syncs without errors on bot startup
+- [ ] Data persists correctly (in production mode)
+- [ ] Validation rules work as expected
+- [ ] Relationships work correctly (if any)
+
+**For AI features**:
+- [ ] Bot responds to "ernest" mentions
+- [ ] AI response is relevant to message
+- [ ] Appropriate image is attached
+- [ ] Errors fall back to generic response
+- [ ] Message tracking works for opted-in users
+
+### Future testing approach
+
+**Unit tests** (for services, utilities):
+```javascript
+import { describe, it, expect } from 'vitest';
+import { hasSwear } from './util/util.js';
+
+describe('hasSwear', () => {
+  it('should detect swear words', () => {
+    expect(hasSwear('This is a damn test')).toBe(true);
+  });
+
+  it('should ignore URLs', () => {
+    expect(hasSwear('https://example.com/damn')).toBe(false);
+  });
+
+  it('should return false for clean messages', () => {
+    expect(hasSwear('Hello world')).toBe(false);
+  });
+});
+```
+
+**Integration tests** (for commands):
+```javascript
+import { describe, it, expect, vi } from 'vitest';
+import pingCommand from './commands/ping.js';
+
+describe('ping command', () => {
+  it('should reply with Pong!', async () => {
+    const interaction = {
+      reply: vi.fn(),
+    };
+
+    await pingCommand.execute(interaction);
+
+    expect(interaction.reply).toHaveBeenCalledWith('Pong!');
+  });
+});
+```
+
+## Code quality and style
+
+### ESLint configuration
+
+Uses `eslint-config-neon` with customizations:
+- Enforces consistent code style
+- Catches common bugs and anti-patterns
+- Requires type annotations via JSDoc
+
+**Key rules**:
+- `no-console`: Off (console.log/error allowed)
+- `prefer-const`: Error (use const when variable isn't reassigned)
+- `no-unused-vars`: Error (all variables must be used)
+- `no-var`: Error (use const/let, not var)
+
+**Running ESLint**:
+```bash
+npm run lint         # Check for issues
+npm run lint:fix     # Auto-fix issues
+```
+
+### Prettier configuration
+
+Configured in `.prettierrc.json`:
+```json
+{
+  "printWidth": 120,
+  "useTabs": true,
+  "semi": true,
+  "singleQuote": true,
+  "trailingComma": "all"
+}
+```
+
+**Running Prettier**:
+```bash
+npm run format          # Format all files
+npm run format:check    # Check formatting without changes
+```
+
+### JSDoc comments
+
+Use JSDoc for type hints and documentation:
+
+```javascript
+/**
+ * Returns a random integer in the range [min, max].
+ *
+ * @param {number} min - Minimum value (inclusive)
+ * @param {number} max - Maximum value (inclusive)
+ * @returns {number} Random integer
+ */
+export function getRandomInt(min, max) {
+  // ...
+}
+
+/**
+ * @typedef {Object} CommandData
+ * @property {string} name - Command name
+ * @property {string} description - Command description
+ */
+
+/**
+ * @type {CommandData}
+ */
+const data = { name: 'test', description: 'Test command' };
+```
+
+**Benefits**:
+- IDE autocomplete and type checking
+- Self-documenting code
+- Catch type errors early
+
+### Code organization best practices
+
+**File structure**:
+- Keep files under 300 lines when possible
+- One primary class/function per file
+- Related utilities can be in the same file
+
+**Function structure**:
+- Keep functions under 50 lines when possible
+- Extract complex logic into helper functions
+- Use descriptive function names
+
+**Variable naming**:
+- `camelCase` for variables and functions
+- `PascalCase` for classes
+- `UPPER_SNAKE_CASE` for constants
+- Descriptive names (avoid `x`, `temp`, `data`)
+
+**Comments**:
+- Write comments for "why", not "what"
+- Use JSDoc for public APIs
+- Explain complex algorithms
+- Don't comment obvious code
+
+**Async/await best practices**:
+- Always await async functions
+- Use `Promise.allSettled()` for parallel operations that shouldn't fail together
+- Use try-catch for error handling
+- Don't mix promises and callbacks
 
 ## Gotchas and tips
-- Dev DB is ephemeral (SQLite in-memory + `force: true`); don’t expect persistence between runs.
-- `messageCreate` ignores bot authors and wraps handler errors to avoid crashing the client.
-- AI contract: `getAIReply` expects JSON with `mood` and `content`; keep responses under 1500 chars and prefix with “Now, now”/“There, there, now” (see system prompt).
-- Channel reply chance is 0–100 and user-tracking is opt-in via `/track`. Chance-gated replies only trigger when `hasSwear(content)` is true.
-- When blocking operations are possible, defer interactions (`interaction.deferReply`) as done in `meme.js`, `chance.js`, `track.js`.
 
-Key files to skim: `src/index.js`, `src/util/{loaders.js,registerEvents.js,util.js}`, `src/services/**`, `src/models/**`, `src/commands/**`, `.github/workflows/ci-cd.yml`, `src/util/deploy.js`.
+### Development database is ephemeral
+**Problem**: All data lost on restart in development mode.
+
+**Why**: SQLite in-memory database + `force: true` in `sequelize.sync()`
+
+**Solution**: 
+- For testing data persistence, set `NODE_ENV=production` and configure `DB_*` env vars for a file-based SQLite or external database
+- Or modify `db.js` to use file-based SQLite in development: `dialect: 'sqlite', storage: './data/dev.db'`
+
+### MessageCreate event and bot messages
+**Problem**: Bot could reply to itself, causing infinite loops.
+
+**Why**: `messageCreate` fires for all messages, including bot messages.
+
+**Solution**: Check `message.author.bot` (already implemented):
+```javascript
+if (!message.author.bot) {
+  // Safe to process
+}
+```
+
+### AI response contract
+**Problem**: OpenAI sometimes returns malformed JSON.
+
+**Why**: AI models aren't 100% reliable.
+
+**Solution**: Always wrap in try-catch and fall back to generic reply (already implemented):
+```javascript
+try {
+  const { mood, content } = JSON.parse(aiResponse.choices[0].message.content);
+  if (!content) throw new Error('content is empty!');
+  // ...
+} catch (error) {
+  console.error(error);
+  return getGenericMessageReply();
+}
+```
+
+### Reply chance is per-channel
+**Problem**: Users confused why bot replies in one channel but not another.
+
+**Why**: Reply chance is stored per-channel in database, defaults to 25%.
+
+**Solution**: 
+- Use `/chance` command to adjust per-channel
+- Document this behavior clearly
+- Consider adding a command to view current chance
+
+### User tracking is opt-in
+**Problem**: AI doesn't remember context for new users.
+
+**Why**: User tracking defaults to false for privacy.
+
+**Solution**:
+- Use `/track` command to opt in
+- Consider showing a tip message when users first interact with AI
+- Document this in help text
+
+### Long-running commands need deferReply
+**Problem**: Commands that take > 3 seconds cause "Interaction failed" error.
+
+**Why**: Discord interactions have a 3-second timeout.
+
+**Solution**: Call `interaction.deferReply()` early:
+```javascript
+async execute(interaction) {
+  await interaction.deferReply(); // Show "Bot is thinking..."
+
+  // Long operation here...
+
+  await interaction.editReply('Done!'); // Update the deferred reply
+}
+```
+
+**Examples**: `meme.js`, `chance.js`, `track.js` all use deferReply
+
+### Command options are optional by default
+**Problem**: Forgot to set `required: true` on a critical option.
+
+**Why**: Discord.js makes options optional by default.
+
+**Solution**: Always explicitly set `required: true` or `required: false`:
+```javascript
+options: [
+  {
+    name: 'input',
+    type: ApplicationCommandOptionType.String,
+    required: true, // Explicit is better than implicit
+  },
+],
+```
+
+### ESM import paths must include .js extension
+**Problem**: `import { foo } from './utils'` fails.
+
+**Why**: ESM requires full file paths with extensions.
+
+**Solution**: Always include `.js` extension:
+```javascript
+import { foo } from './utils.js';
+```
+
+### Cannot use __dirname in ESM
+**Problem**: `__dirname` is undefined in ESM modules.
+
+**Why**: `__dirname` is a CommonJS feature, not available in ESM.
+
+**Solution**: Use `import.meta.url`:
+```javascript
+import { fileURLToPath } from 'node:url';
+import path from 'node:path';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const __filename = fileURLToPath(import.meta.url);
+```
+
+Or for directory URLs:
+```javascript
+const eventsDir = new URL('events/', import.meta.url);
+```
+
+### Circular dependencies can cause issues
+**Problem**: Module A imports B, B imports A - one is undefined.
+
+**Why**: ESM evaluates modules in order, circular references break this.
+
+**Solution**: 
+- Use dependency injection (serviceContainer)
+- Move shared code to a third module
+- Use dynamic imports: `const module = await import('./module.js')`
+
+### Discord.js permissions are bit flags
+**Problem**: Permission checks fail unexpectedly.
+
+**Why**: Permissions are stored as BigInt bit flags, not strings.
+
+**Solution**: Use `PermissionFlagsBits` enum:
+```javascript
+import { PermissionFlagsBits } from 'discord.js';
+
+// Check permissions
+if (member.permissions.has(PermissionFlagsBits.ManageChannels)) {
+  // User has permission
+}
+
+// Set required permissions in command data
+default_member_permissions: PermissionFlagsBits.ManageChannels.toString()
+```
+
+### Sequelize validation errors aren't user-friendly
+**Problem**: Raw Sequelize errors shown to users.
+
+**Why**: Sequelize throws verbose error objects.
+
+**Solution**: Catch and translate:
+```javascript
+try {
+  await Channel.create({ channelId, replyChance: 150 });
+} catch (error) {
+  if (error.name === 'SequelizeValidationError') {
+    return interaction.reply('Reply chance must be between 0 and 100.');
+  }
+  throw error;
+}
+```
+
+### Environment variables are strings
+**Problem**: `process.env.MAX_MESSAGE_LIMIT` is `"20"` (string), not `20` (number).
+
+**Why**: All environment variables are strings.
+
+**Solution**: Parse and validate (already done in `config.js`):
+```javascript
+const limit = parseInt(process.env.MAX_MESSAGE_LIMIT, 10);
+return isNaN(limit) ? 20 : limit; // Default if invalid
+```
+
+## Troubleshooting
+
+### Bot won't start
+
+**"Invalid token" or "401 Unauthorized"**:
+- Check `DISCORD_TOKEN` in `.env` is correct
+- Ensure no extra spaces or quotes around token
+- Regenerate token in Discord Developer Portal
+- Make sure token hasn't been compromised/reset
+
+**"Cannot find module" errors**:
+- Run `npm install` to install dependencies
+- Check import paths have `.js` extension
+- Ensure file exists at specified path
+
+**"Database connection failed"**:
+- In development: Should use SQLite in-memory (check `NODE_ENV`)
+- In production: Verify `DB_*` environment variables are correct
+- Check database server is running and accessible
+
+**Port already in use**:
+- Discord bots don't use ports by default
+- If you added a web server, check port isn't in use: `lsof -i :PORT`
+- Kill conflicting process or change port
+
+### Commands not working
+
+**Commands don't appear in Discord**:
+- Run `npm run deploy` to register commands
+- Wait 5-10 minutes for global commands to sync
+- Check `APPLICATION_ID` is correct in `.env`
+- Try in DM with bot (instant) vs server (may take time)
+
+**"Interaction failed" errors**:
+- Check console logs for actual error
+- Ensure command executes within 3 seconds or uses `deferReply()`
+- Verify bot has required permissions in the channel
+- Check for uncaught errors in `execute()` function
+
+**Command exists but doesn't execute**:
+- Check console logs for errors
+- Verify command file exports default object correctly
+- Ensure command passes zod validation
+- Test in different channel (permissions issue?)
+
+### AI responses not working
+
+**Bot doesn't reply to "ernest" mentions**:
+- Check `OPENAI_API_KEY` in `.env`
+- Check OpenAI account has available credits
+- Look for errors in console logs
+- Test with `curl` to verify OpenAI API access
+
+**AI replies with generic quotes instead of AI response**:
+- Check console logs for OpenAI errors
+- Verify API key has correct permissions
+- Check rate limits haven't been exceeded
+- Ensure internet connectivity
+
+**AI responses are slow**:
+- OpenAI API can take 2-5 seconds
+- This is normal - ensure `interaction.deferReply()` is used
+- Consider implementing response caching
+
+### Database issues
+
+**"Table doesn't exist" errors in production**:
+- Ensure `sequelize.sync()` ran successfully on startup
+- Check database user has CREATE TABLE permissions
+- Verify database connection is successful
+- Check logs for sync errors
+
+**Data not persisting**:
+- In development: Expected (in-memory database)
+- In production: Check `NODE_ENV=production` is set
+- Verify database isn't being recreated (no `force: true` in production)
+
+**Validation errors**:
+- Check model definition constraints
+- Verify input data matches expected types
+- Look for unique constraint violations
+
+### Deployment issues
+
+**Docker build fails**:
+- Check Dockerfile syntax
+- Ensure all dependencies in package.json
+- Verify base image is accessible
+- Check for `.dockerignore` excluding necessary files
+
+**Docker container exits immediately**:
+- Check container logs: `docker logs amano-discord-bot`
+- Verify environment variables are passed correctly
+- Ensure `DISCORD_TOKEN` and `OPENAI_API_KEY` are set
+- Check for startup errors in logs
+
+**VPS deployment fails**:
+- Verify SSH credentials in GitHub secrets
+- Check `VPS_PATH` exists on server
+- Ensure Docker is installed on VPS
+- Check VPS has internet connectivity
+- Verify `.env` file exists on VPS
+
+### Performance issues
+
+**Bot is slow to respond**:
+- Check network latency to Discord/OpenAI
+- Profile code to find bottlenecks
+- Ensure database queries are optimized (indexes)
+- Check VPS/server resources (CPU, memory, network)
+
+**High memory usage**:
+- Check `QuickLRU` cache size (controlled by `MAX_MESSAGE_LIMIT`)
+- Look for memory leaks (use Node.js profiler)
+- Monitor with `docker stats` or `top`
+
+**Rate limiting errors**:
+- Discord: Respect rate limits (50 requests per second per bot)
+- OpenAI: Check API rate limits for your tier
+- Implement exponential backoff for retries
+
+## Performance considerations
+
+### Message caching strategy
+
+The bot uses `QuickLRU` for in-memory message caching:
+- **Pro**: Fast access, no database queries for recent messages
+- **Con**: Limited size, lost on restart
+- **Tune**: Adjust `MAX_MESSAGE_LIMIT` based on available memory
+
+**Memory usage estimate**:
+- Each message: ~500 bytes (text) + ~100 bytes (metadata)
+- 20 messages per guild × 100 guilds × 600 bytes = ~1.2 MB
+- Scale accordingly
+
+### Database query optimization
+
+**Use indexes** for frequently queried fields:
+```javascript
+channelId: {
+  type: DataTypes.STRING,
+  unique: true, // Creates index automatically
+  allowNull: false,
+}
+```
+
+**Batch operations** when possible:
+```javascript
+// Bad: N queries
+for (const id of channelIds) {
+  await Channel.findOne({ where: { channelId: id } });
+}
+
+// Good: 1 query
+await Channel.findAll({ where: { channelId: { [Op.in]: channelIds } } });
+```
+
+**Limit result sets**:
+```javascript
+await Message.findAll({
+  limit: 100,
+  order: [['createdAt', 'DESC']],
+});
+```
+
+### Parallel operations
+
+Use `Promise.all()` for independent async operations:
+```javascript
+// Bad: Sequential (slow)
+const messages = await messageService.getMessages(guildId);
+const user = await userService.getUser(userId);
+
+// Good: Parallel (fast)
+const [messages, user] = await Promise.all([
+  messageService.getMessages(guildId),
+  userService.getUser(userId),
+]);
+```
+
+Use `Promise.allSettled()` when operations can fail independently:
+```javascript
+const [messagesResult, userResult] = await Promise.allSettled([
+  messageService.getMessages(guildId),
+  userService.getUser(userId),
+]);
+
+const messages = messagesResult.status === 'fulfilled' ? messagesResult.value : [];
+const user = userResult.status === 'fulfilled' ? userResult.value : null;
+```
+
+### API rate limiting
+
+**Discord rate limits**:
+- 50 requests per second per bot (hard limit)
+- Use `interaction.deferReply()` to buy time
+- Batch operations when possible
+- Use webhooks for high-volume messages
+
+**OpenAI rate limits**:
+- Depends on your tier (check OpenAI dashboard)
+- Implement request queuing if needed
+- Cache responses for identical queries
+- Use streaming for long responses
+
+## Security best practices
+
+### Environment variable security
+
+**Never commit secrets**:
+- Add `.env` to `.gitignore` (already done)
+- Use `.env.example` as template without real values
+- Rotate tokens if accidentally committed
+
+**Secure storage in production**:
+- Use environment variables, not files
+- Or use Docker secrets: `docker secret create`
+- Or use cloud provider secret managers (AWS Secrets Manager, Azure Key Vault)
+
+**Validate environment variables**:
+```javascript
+const token = process.env.DISCORD_TOKEN;
+if (!token) {
+  throw new Error('DISCORD_TOKEN is required');
+}
+```
+
+### Input validation
+
+**Always validate user input**:
+```javascript
+const value = interaction.options.getInteger('value');
+
+if (value < 0 || value > 100) {
+  return interaction.reply({
+    content: 'Value must be between 0 and 100.',
+    ephemeral: true,
+  });
+}
+```
+
+**Use Sequelize validation**:
+```javascript
+value: {
+  type: DataTypes.INTEGER,
+  validate: {
+    min: 0,
+    max: 100,
+  },
+}
+```
+
+**Sanitize before database queries**:
+- Use parameterized queries (Sequelize does this automatically)
+- Never concatenate user input into SQL strings
+
+### Permission checks
+
+**Always verify permissions**:
+```javascript
+const member = interaction.member;
+const channelPermissions = channel.permissionsFor(member);
+
+if (!channelPermissions.has(PermissionFlagsBits.ManageChannels)) {
+  return interaction.reply({
+    content: "You don't have permission.",
+    ephemeral: true,
+  });
+}
+```
+
+**Set command-level permissions**:
+```javascript
+data: {
+  name: 'admin',
+  description: 'Admin command',
+  default_member_permissions: PermissionFlagsBits.Administrator.toString(),
+}
+```
+
+### Rate limiting
+
+**Implement rate limiting** for user actions:
+```javascript
+const userLastAction = lastActionTimes.get(userId);
+const now = Date.now();
+
+if (userLastAction && now - userLastAction < 5000) { // 5 second cooldown
+  return interaction.reply({
+    content: 'Please wait before using this command again.',
+    ephemeral: true,
+  });
+}
+
+lastActionTimes.set(userId, now);
+```
+
+### Error handling
+
+**Don't leak sensitive info in errors**:
+```javascript
+// Bad
+catch (error) {
+  await interaction.reply(`Error: ${error.message}`);
+}
+
+// Good
+catch (error) {
+  console.error(error); // Log full error server-side
+  await interaction.reply('Something went wrong. Please try again later.');
+}
+```
+
+**Log security events**:
+```javascript
+console.log(`Permission denied: ${user.tag} tried to use admin command`);
+console.log(`Invalid input: ${input} from ${user.tag}`);
+```
+
+### Dependency security
+
+**Keep dependencies updated**:
+```bash
+npm audit          # Check for vulnerabilities
+npm audit fix      # Auto-fix vulnerabilities
+npm outdated       # Check for outdated packages
+```
+
+**Review dependencies before adding**:
+- Check npm downloads and GitHub stars
+- Review source code for small/unknown packages
+- Prefer well-maintained packages
+
+### OpenAI API security
+
+**Protect API keys**:
+- Never expose in client-side code
+- Rotate keys periodically
+- Monitor usage for anomalies
+
+**Limit AI exposure**:
+- Don't pass sensitive user data to OpenAI
+- Implement content filtering
+- Set max_tokens to prevent abuse
+- Consider user rate limiting
+
+### Discord token security
+
+**Protect bot token**:
+- Never share publicly
+- Rotate if compromised
+- Monitor bot activity for unauthorized use
+
+**Use minimal permissions**:
+- Only request necessary intents
+- Only request necessary permissions
+- Follow principle of least privilege
+
+---
+
+## Key files to explore
+
+**Core architecture**:
+- `src/index.js` - Application entry point
+- `src/db/dbInit.js` - Database initialization
+- `src/util/loaders.js` - Dynamic module loading
+- `src/util/registerEvents.js` - Event system wiring
+
+**Services and utilities**:
+- `src/services/serviceContainer.js` - Dependency injection
+- `src/services/channelService.js` - Channel management
+- `src/services/messageService.js` - Message history/tracking
+- `src/services/userService.js` - User preferences
+- `src/util/util.js` - Core message reply logic
+
+**Commands and events**:
+- `src/commands/ping.js` - Simple command example
+- `src/commands/chance.js` - Complex command with permissions
+- `src/commands/track.js` - Command with database interaction
+- `src/events/ready.js` - One-time event
+- `src/events/messageCreate.js` - Recurring event
+
+**Models**:
+- `src/models/channel.js` - Channel settings model
+- `src/models/user.js` - User preferences model
+- `src/models/message.js` - Message history model
+
+**Configuration**:
+- `src/config.js` - Environment variables and constants
+- `.env.example` - Environment variables template
+- `package.json` - Dependencies and scripts
+
+**CI/CD**:
+- `.github/workflows/ci-cd.yml` - Build and deployment pipeline
+- `.releaserc.json` - Semantic release configuration
+- `Dockerfile` - Container image definition
+- `compose.yaml` - Docker Compose configuration
+
+**Development tools**:
+- `src/util/deploy.js` - Command registration script
+- `src/util/generateCmdDocs.js` - Documentation generator
+- `.eslintrc.json` - ESLint configuration
+- `.prettierrc.json` - Prettier configuration
