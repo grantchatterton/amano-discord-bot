@@ -1,6 +1,6 @@
 # Copilot instructions for this repo
 
-**Purpose**: Help AI agents and contributors productively work on this Node.js Discord bot (ESM, discord.js v14, Sequelize, OpenAI) with comprehensive guidance and minimal context hunting.
+**Purpose**: Help AI agents and contributors productively work on this Node.js Discord bot (ESM, discord.js v14, Sequelize, OpenAI) with comprehensive guidance and minimal context hunting. This document provides extensive details on architecture, conventions, development workflows, CI/CD processes, code examples for extending functionality, troubleshooting guides, performance tips, and security best practices - expanding from basic instructions to a complete onboarding resource.
 
 ## Table of Contents
 - [Architecture and flow](#architecture-and-flow)
@@ -1043,11 +1043,11 @@ import { hasSwear } from './util/util.js';
 
 describe('hasSwear', () => {
   it('should detect swear words', () => {
-    expect(hasSwear('This is a damn test')).toBe(true);
+    expect(hasSwear('This is a [swearword] test')).toBe(true);
   });
 
   it('should ignore URLs', () => {
-    expect(hasSwear('https://example.com/damn')).toBe(false);
+    expect(hasSwear('https://example.com/[swearword]')).toBe(false);
   });
 
   it('should return false for clean messages', () => {
