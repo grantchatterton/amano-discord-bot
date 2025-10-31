@@ -17,8 +17,9 @@ export default class MessageService {
 
 	/**
 	 * The OpenAI client instance for generating summaries.
+	 * Can be null if OpenAI is not configured.
 	 *
-	 * @type {import('openai').OpenAI}
+	 * @type {import('openai').OpenAI | null}
 	 */
 	#openAIClient;
 
@@ -51,7 +52,7 @@ export default class MessageService {
 	 * Creates a new MessageService instance.
 	 *
 	 * @param {import('sequelize').ModelStatic<import('sequelize').Model>} messageModel - The Sequelize model for messages
-	 * @param {import('openai').OpenAI} openAIClient - The OpenAI client for generating summaries
+	 * @param {import('openai').OpenAI | null} openAIClient - The OpenAI client for generating summaries (optional)
 	 * @param {number} maxMessageLimit - Maximum messages before summarization
 	 */
 	constructor(messageModel, openAIClient, maxMessageLimit) {
@@ -100,11 +101,16 @@ export default class MessageService {
 	 * Generates a conversation summary using OpenAI's GPT-4o model.
 	 * The summary includes the conversation content and any mimic instructions
 	 * (who/what the user asked the bot to talk like).
+	 * If OpenAI is not configured, returns null.
 	 *
 	 * @param {Array<{role: string, content: string}>} messages - Messages to summarize
-	 * @returns {Promise<{content: string, mimic: string | null}>} Object containing the summary and optional mimic instruction
+	 * @returns {Promise<{content: string, mimic: string | null} | null>} Object containing the summary and optional mimic instruction, or null if OpenAI is unavailable
 	 */
 	async getSummary(messages) {
+		if (!this.#openAIClient) {
+			return null;
+		}
+
 		const response = await this.#openAIClient.chat.completions.create({
 			model: "gpt-4o",
 			max_tokens: 300,
@@ -197,6 +203,7 @@ export default class MessageService {
 	 * Called within the mutex lock from addMessages to ensure atomic operations.
 	 * On successful summary generation, clears accumulated messages and persists to database.
 	 * On error, keeps accumulated messages to prevent data loss.
+	 * If OpenAI is not configured, messages are still accumulated but no summary is generated.
 	 *
 	 * @param {string} guildId - The Discord guild ID
 	 * @param {Array<{role: string, content: string}>} messages - New messages to save
@@ -214,6 +221,13 @@ export default class MessageService {
 					? [{ role: "system", content: `Previous summary: ${messageData.summary}` }, ...newMessages]
 					: newMessages;
 				const summary = await this.getSummary(summaryMessages);
+
+				// If OpenAI is not available, summary will be null - just accumulate messages
+				if (!summary) {
+					messageData.messages = newMessages;
+					return;
+				}
+
 				if (!summary.content) {
 					throw new Error("summary.content is undefined!");
 				}

@@ -16,12 +16,14 @@ import { registerEvents } from "./util/registerEvents.js";
 await initDB();
 
 // Initialize services
-serviceContainer.register("openAI", new OpenAI({ apiKey: process.env.OPENAI_API_KEY }));
+// OpenAI is optional - if API key is not provided, AI features will be disabled
+const openAIClient = process.env.OPENAI_API_KEY ? new OpenAI({ apiKey: process.env.OPENAI_API_KEY }) : null;
+serviceContainer.register("openAI", openAIClient);
 
 serviceContainer.register("channelService", new ChannelService(sequelize.models.Channel));
 serviceContainer.register(
 	"messageService",
-	new MessageService(sequelize.models.Message, serviceContainer.resolve("openAI"), MAX_MESSAGE_LIMIT),
+	new MessageService(sequelize.models.Message, openAIClient, MAX_MESSAGE_LIMIT),
 );
 serviceContainer.register("userService", new UserService(sequelize.models.User));
 
