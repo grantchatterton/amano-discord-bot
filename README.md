@@ -9,7 +9,7 @@ I plan on updating this application in the future to support customization for w
 ## Features
 
 - Automatic replies to messages containing configured swear words with a configurable chance
-- AI-powered responses when messages mention "ernest" (uses OpenAI)
+- AI-powered responses when messages mention "ernest" (uses OpenAI if configured, otherwise uses fallback generic replies)
 - Slash commands (see Commands below)
 - Message tracking system for personalized AI interactions (opt-in)
 
@@ -33,7 +33,7 @@ I plan on updating this application in the future to support customization for w
 - Node.js 20+ (LTS recommended)
 - npm (or yarn)
 - A Discord application and bot token (from the Discord Developer Portal)
-- OpenAI API key
+- OpenAI API key (optional, for AI-powered responses)
 
 ## Obtaining a Discord Bot Token
 
@@ -83,9 +83,9 @@ To run Amano, you'll need to create a Discord application and bot through the Di
 - If your token is accidentally exposed (e.g., committed to a public repository), reset it immediately in the Developer Portal
 - Discord will automatically reset your token if they detect it has been compromised
 
-## Obtaining an OpenAI API Key
+## Obtaining an OpenAI API Key (Optional)
 
-To use Amano's AI-powered features, you'll need an OpenAI API key. Follow these steps to obtain one:
+To use Amano's AI-powered features, you'll need an OpenAI API key. If you don't configure an OpenAI API key, the bot will still work but will use fallback generic replies instead of AI-generated responses when messages mention "ernest". Follow these steps to obtain one:
 
 **1. Create an OpenAI account**
    - Visit [https://platform.openai.com/signup](https://platform.openai.com/signup)
@@ -130,9 +130,11 @@ Then edit `.env` to include your credentials:
 ```
 DISCORD_TOKEN=your_bot_token_here
 APPLICATION_ID=your_application_id_here
+# Optional - for AI-powered responses (fallback to generic replies if not provided)
 OPENAI_API_KEY=your_openai_key_here
-# Optional
+# Optional - defaults to 20
 MAX_MESSAGE_LIMIT=20
+# Optional - defaults to development
 NODE_ENV=development
 ```
 
@@ -140,6 +142,7 @@ Notes:
 
 - `DISCORD_TOKEN` is required for the bot to login.
 - `APPLICATION_ID` is used when registering slash commands (`npm run deploy`).
+- `OPENAI_API_KEY` is optional. If not provided, the bot will use fallback generic replies instead of AI-generated responses.
 - When `NODE_ENV` is not `production`, the app uses an in-memory SQLite database for development convenience.
 - For production, set `NODE_ENV=production` and configure database connection using `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_HOST`, and `DB_DIALECT` environment variables (see Environment variables reference below).
 
@@ -195,7 +198,7 @@ docker run --env-file .env \
   -d amano-discord-bot:latest
 ```
 
-Or run by passing environment variables directly:
+Or run by passing environment variables directly (OPENAI_API_KEY is optional):
 
 ```bash
 docker run -e DISCORD_TOKEN=your_token \
@@ -228,7 +231,7 @@ Notes
 
 - **DISCORD_TOKEN** — (required) the bot token from Discord Developer Portal
 - **APPLICATION_ID** — (required for registering commands) your application's client id
-- **OPENAI_API_KEY** — (required) OpenAI API key for AI-generated replies
+- **OPENAI_API_KEY** — (optional) OpenAI API key for AI-generated replies; if not provided, the bot will use fallback generic replies
 - **NODE_ENV** — (optional) set to `production` in production; default is `development`
 - **MAX_MESSAGE_LIMIT** — (optional) maximum number of messages to track per guild for AI context; default is 20
 - **DB_NAME** — (production only) database name
