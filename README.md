@@ -140,9 +140,8 @@ Notes:
 - `DISCORD_TOKEN` is required for the bot to login.
 - `APPLICATION_ID` is used when registering slash commands (`npm run deploy`).
 - `OPENAI_API_KEY` is optional. If not provided, the bot will use fallback generic replies instead of AI-generated responses.
- - `OPENAI_API_KEY` is optional. If not provided, the bot will use fallback generic replies instead of AI-generated responses.
- - The app reads database configuration from `DB_*` environment variables. By default it uses SQLite in-memory (equivalent to `DB_DIALECT=sqlite` and `DB_STORAGE=:memory:`). To persist a local development database set `DB_STORAGE` to a file path (for example `DB_STORAGE=./data/dev.db`).
- - For production, set `DB_DIALECT` to your production dialect (for example `mysql` or `postgres`) and provide the corresponding `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_HOST` (and optionally `DB_PORT`) environment variables. See Environment variables reference below.
+- The app reads database configuration from `DB_*` environment variables. By default it uses SQLite in-memory (equivalent to `DB_DIALECT=sqlite` and `DB_STORAGE=:memory:`). To persist a local development database set `DB_STORAGE` to a file path (for example `DB_STORAGE=./data/dev.db`).
+- For production, set `DB_DIALECT` to your production dialect (for example `mysql` or `postgres`) and provide the corresponding `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_HOST` (and optionally `DB_PORT`) environment variables. See Environment variables reference below.
 
 **3. Register slash commands (optional but recommended before first run)**
 
