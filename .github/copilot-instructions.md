@@ -184,7 +184,7 @@ Defaults and behavior:
 - `src/db/db.js` sets sensible defaults: host `localhost`, database `amano`, user `root`, empty password, and reads an optional `DB_PORT`.
 
 Sync semantics:
-- `src/db/dbInit.js` loads models via `loadModels()` and calls `sequelize.sync({ force: process.env.NODE_ENV === "development" })`.
+- `src/db/dbInit.js` loads models via `loadModels()` and calls `sequelize.sync({ force: process.env.DB_FORCE_SYNC === "true" })`.
 - When `DB_FORCE_SYNC === "true"` the sync runs with the force option enabled (drops and recreates tables). In other environments tables are created if missing and data is preserved.
 
 Model loading:
@@ -370,8 +370,17 @@ APPLICATION_ID=your_application_id_here
 OPENAI_API_KEY=your_openai_api_key_here
 
 # Optional
-NODE_ENV=development
 MAX_MESSAGE_LIMIT=20
+# Database (defaults shown)
+DB_DIALECT=sqlite
+DB_STORAGE=:memory:       # set to ./data/dev.db to persist locally
+DB_HOST=localhost
+DB_PORT=5432
+DB_NAME=amano
+DB_USER=root
+DB_PASSWORD=
+# If true, forces sequelize.sync() to drop and recreate tables (use with caution)
+DB_FORCE_SYNC=false
 ```
 
 **5. Register slash commands** (required before first run):
@@ -1183,7 +1192,7 @@ const data = { name: 'test', description: 'Test command' };
 **Why**: SQLite in-memory database + `force: true` in `sequelize.sync()`
 
 **Solution**: 
-- For testing data persistence, set `NODE_ENV=production` and configure `DB_*` env vars for a file-based SQLite or external database
+- For testing data persistence, configure `DB_*` env vars for a file-based SQLite or external database
 - Or modify `db.js` to use file-based SQLite in development: `dialect: 'sqlite', storage: './data/dev.db'`
 
 ### MessageCreate event and bot messages
@@ -1370,7 +1379,6 @@ return isNaN(limit) ? 20 : limit; // Default if invalid
 - Ensure file exists at specified path
 
 **"Database connection failed"**:
-- In development: Should use SQLite in-memory (check `NODE_ENV`)
 - In production: Verify `DB_*` environment variables are correct
 - Check database server is running and accessible
 
@@ -1428,7 +1436,6 @@ return isNaN(limit) ? 20 : limit; // Default if invalid
 
 **Data not persisting**:
 - In development: Expected (in-memory database)
-- In production: Check `NODE_ENV=production` is set
 - Verify database isn't being recreated (no `force: true` in production)
 
 **Validation errors**:
