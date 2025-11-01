@@ -201,7 +201,6 @@ Or run by passing environment variables directly (OPENAI_API_KEY is optional):
 docker run -e DISCORD_TOKEN=your_token \
   -e APPLICATION_ID=your_application_id \
   -e OPENAI_API_KEY=your_openai_key \
-  -e NODE_ENV=production \
   --name amano-discord-bot \
   --restart unless-stopped \
   -d amano-discord-bot:latest
