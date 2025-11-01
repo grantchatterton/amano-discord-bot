@@ -25,7 +25,7 @@ The entry point orchestrates the bot's initialization in this order:
 
 1. **Database initialization**: `initDB()` → `loadModels()` → `sequelize.sync()`
    - Dynamically loads all model files from `src/models/`
-   - Syncs models with the database (drops tables in development mode)
+   - Syncs models with the database
 
 2. **Service registration**: Instances registered in `serviceContainer` (singleton pattern)
    - `openAI`: OpenAI client instance
@@ -175,23 +175,21 @@ Located in `src/util/util.js`, this function handles AI-powered responses:
 
 ### Persistence layer
 
-**Development mode** (`NODE_ENV != 'production'`):
-- Uses SQLite in-memory database (`:memory:`)
-- Database recreated on every restart
-- `force: true` in `sequelize.sync()` drops all tables and recreates them
-- Perfect for testing without data pollution
+The application builds the Sequelize connection from `DB_*` environment variables (see `src/db/db.js`). Defaults are SQLite in-memory, but you can fully configure which DB to use via env vars.
 
-**Production mode** (`NODE_ENV=production`):
-- Reads `DB_*` environment variables (name, user, password, host, dialect)
-- Supports MySQL and PostgreSQL
-- `force: false` preserves existing data
-- Tables are created if they don't exist, but data persists
+Defaults and behavior:
+- `DB_DIALECT` — defaults to `sqlite` if not provided.
+- `DB_STORAGE` — (sqlite only) defaults to `:memory:` (in-memory). To persist a local dev DB set it to a file path, e.g. `DB_STORAGE=./data/dev.db`.
+- `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD` — used for SQL dialects (MySQL/Postgres).
+- `src/db/db.js` sets sensible defaults: host `localhost`, database `amano`, user `root`, empty password, and reads an optional `DB_PORT`.
 
-**Model loading**:
-- `dbInit.js` uses `loadModels()` to dynamically import all files from `src/models/`
-- Each model file exports a function: `(sequelize) => sequelize.define(...)`
-- Models auto-register with Sequelize
-- Pattern allows easy addition of new models without manual registration
+Sync semantics:
+- `src/db/dbInit.js` loads models via `loadModels()` and calls `sequelize.sync({ force: process.env.NODE_ENV === "development" })`.
+- When `DB_FORCE_SYNC === "true"` the sync runs with the force option enabled (drops and recreates tables). In other environments tables are created if missing and data is preserved.
+
+Model loading:
+- `dbInit.js` dynamically imports all files in `src/models/` as ModelLoader functions `(sequelize) => sequelize.define(...)`.
+- This allows adding models without manual registration.
 
 ## Conventions and patterns
 
