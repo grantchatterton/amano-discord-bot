@@ -20,7 +20,6 @@ I plan on updating this application in the future to support customization for w
 | Name    | Description                                                              |
 | ------- | ------------------------------------------------------------------------ |
 | /chance | Set the chance of replying to a message containing a swear for a channel |
-| /foo    | Replies with bar                                                         |
 | /meme   | Send a random meme                                                       |
 | /ping   | Pong!                                                                    |
 | /roll   | Roll one or more dice                                                    |
