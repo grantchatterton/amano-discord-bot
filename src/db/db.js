@@ -1,20 +1,15 @@
 import process from "node:process";
 import { Sequelize } from "sequelize";
 
-function createSequelize() {
-	if (process.env.NODE_ENV !== "production") {
-		return new Sequelize("sqlite::memory:");
-	}
-
-	const { DB_NAME, DB_USER, DB_PASSWORD, DB_HOST, DB_DIALECT } = process.env;
-	return new Sequelize(DB_NAME, DB_USER, DB_PASSWORD, {
-		host: DB_HOST,
-		dialect: DB_DIALECT,
-		logging: false,
-	});
-}
-
-export const sequelize = createSequelize();
+export const sequelize = new Sequelize({
+	dialect: process.env.DB_DIALECT || "sqlite",
+	host: process.env.DB_HOST || "localhost",
+	port: process.env.DB_PORT ? Number(process.env.DB_PORT) : undefined,
+	database: process.env.DB_NAME || "amano",
+	username: process.env.DB_USER || "root",
+	password: process.env.DB_PASSWORD || "",
+	storage: process.env.DB_STORAGE || ":memory:",
+});
 
 await sequelize.authenticate();
 
