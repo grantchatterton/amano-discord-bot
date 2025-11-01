@@ -133,8 +133,6 @@ APPLICATION_ID=your_application_id_here
 OPENAI_API_KEY=your_openai_key_here
 # Optional - defaults to 20
 MAX_MESSAGE_LIMIT=20
-# Optional - defaults to development
-NODE_ENV=development
 ```
 
 Notes:
@@ -142,8 +140,8 @@ Notes:
 - `DISCORD_TOKEN` is required for the bot to login.
 - `APPLICATION_ID` is used when registering slash commands (`npm run deploy`).
 - `OPENAI_API_KEY` is optional. If not provided, the bot will use fallback generic replies instead of AI-generated responses.
-- When `NODE_ENV` is not `production`, the app uses an in-memory SQLite database for development convenience.
-- For production, set `NODE_ENV=production` and configure database connection using `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_HOST`, and `DB_DIALECT` environment variables (see Environment variables reference below).
+- The app reads database configuration from `DB_*` environment variables. By default it uses SQLite in-memory (equivalent to `DB_DIALECT=sqlite` and `DB_STORAGE=:memory:`). To persist a local development database set `DB_STORAGE` to a file path (for example `DB_STORAGE=./data/dev.db`).
+- For production, set `DB_DIALECT` to your production dialect (for example `mysql` or `postgres`) and provide the corresponding `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_HOST` (and optionally `DB_PORT`) environment variables. See Environment variables reference below.
 
 3. Register slash commands (optional but recommended before first run)
 
@@ -231,13 +229,15 @@ Notes
 - **DISCORD_TOKEN** — (required) the bot token from Discord Developer Portal
 - **APPLICATION_ID** — (required for registering commands) your application's client id
 - **OPENAI_API_KEY** — (optional) OpenAI API key for AI-generated replies; if not provided, the bot will use fallback generic replies
-- **NODE_ENV** — (optional) set to `production` in production; default is `development`
-- **MAX_MESSAGE_LIMIT** — (optional) maximum number of messages to track per guild for AI context; default is 20
-- **DB_NAME** — (production only) database name
-- **DB_USER** — (production only) database user
-- **DB_PASSWORD** — (production only) database password
-- **DB_HOST** — (production only) database host
-- **DB_DIALECT** — (production only) database dialect (e.g., `mysql` or `postgres`)
+- **MAX_MESSAGE_LIMIT** — (optional; defaults to `20`) maximum number of messages to track per guild for AI context before generating a summary
+- **DB_DIALECT** — (optional; defaults to `sqlite`) database dialect/engine to use
+- **DB_HOST** — (optional; defaults to `localhost`) database host
+- **DB_PORT** — (optional) database port (e.g., `5432` for Postgres)
+- **DB_NAME** — (optional; defaults to `amano`) database name used by SQL dialects like MySQL/Postgres
+- **DB_USER** — (optional; defaults to `root`) database user
+- **DB_PASSWORD** — (optional; defaults to empty password) database password
+- **DB_STORAGE** — (optional; only used if `DB_DIALECT=sqlite`; defaults to `:memory:`) storage path for SQLite. which creates an in-memory database. To persist locally set a file path like `./data/dev.db`.
+- **DB_FORCE_SYNC** - (optional; disabled by default) if `true`, force syncs the database (not recommended for production)
 
 ## Registering commands
 
