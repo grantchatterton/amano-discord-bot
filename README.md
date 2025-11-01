@@ -31,7 +31,7 @@ I plan on updating this application in the future to support customization for w
 ## Prerequisites
 
 - Node.js 20+ (LTS recommended)
-- npm (or yarn)
+- npm
 - A Discord application and bot token (from the Discord Developer Portal)
 - OpenAI API key (optional, for AI-powered responses)
 
