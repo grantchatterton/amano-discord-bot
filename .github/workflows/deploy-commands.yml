@@ -1,0 +1,48 @@
+name: "Deploy Discord Commands"
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'src/commands/**'
+  workflow_dispatch:
+
+jobs:
+  deploy-commands:
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Deploy Discord commands
+        run: npm run deploy
+        env:
+          DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}
+          APPLICATION_ID: ${{ secrets.APPLICATION_ID }}
+      
+      - name: Update README commands table
+        run: npm run docs:commands
+        
+      - name: Commit updated README
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add README.md
+          git commit -m "chore: update commands table in README" || echo "No changes to commit"
+
+      - name: Push changes
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: main

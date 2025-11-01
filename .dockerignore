@@ -1,0 +1,14 @@
+.env
+.env.*
+.eslintrc.json
+.gitignore
+.misc
+.prettierrc.json
+.vscode
+.github
+node_modules/
+secrets/
+src/util/deploy.js
+src/util/generateCmdDocs.js
+tests/
+README.md

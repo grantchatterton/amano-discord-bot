@@ -1,0 +1,14 @@
+const path = require("node:path");
+
+const DB_BASE_PATH = path.join(process.cwd(), "src", "db");
+
+function buildPath(...subPaths) {
+	return path.join(DB_BASE_PATH, ...subPaths);
+}
+
+module.exports = {
+	config: buildPath("config", "config.json"),
+	"models-path": buildPath("models"),
+	"seeders-path": buildPath("seeders"),
+	"migrations-path": buildPath("migrations"),
+};
