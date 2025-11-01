@@ -235,7 +235,7 @@ Notes
 - **DB_NAME** — (optional; defaults to `amano`) database name used by SQL dialects like MySQL/Postgres
 - **DB_USER** — (optional; defaults to `root`) database user
 - **DB_PASSWORD** — (optional; defaults to empty password) database password
-- **DB_STORAGE** — (optional; only used if `DB_DIALECT=sqlite`; defaults to `:memory:`) storage path for SQLite. which creates an in-memory database. To persist locally set a file path like `./data/dev.db`.
+- **DB_STORAGE** — (optional; only used if `DB_DIALECT=sqlite`; defaults to `:memory:` (in-memory storage)) storage path for SQLite (to persist locally, set a file path like `./data/dev.db`)
 - **DB_FORCE_SYNC** — (optional; disabled by default) if `true`, force syncs the database (not recommended for production)
 
 ## Registering commands
