@@ -23,7 +23,7 @@ I plan on updating this application in the future to support customization for w
 | /meme   | Send a random meme                                                       |
 | /ping   | Pong!                                                                    |
 | /roll   | Roll one or more dice                                                    |
-| /track  | Allows users to opt in/out of having their messages tracked              |
+| /track  | Allows users to opt-in/out of having their messages tracked              |
 
 <!-- END COMMANDS SECTION -->
 
