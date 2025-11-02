@@ -5,6 +5,8 @@ import { loadCommands } from "./loaders.js";
 
 // Load all commands
 const commands = await loadCommands(new URL("../commands/", import.meta.url));
+
+// Generate markdown table for commands
 const markdown = getMarkdownTable({
 	table: {
 		head: ["Name", "Description"],
@@ -13,10 +15,12 @@ const markdown = getMarkdownTable({
 });
 
 // Load the README file and insert the commands table
-const contents = await readFile(new URL("../../README.md", import.meta.url), "utf8");
+const readmeFileURL = new URL("../../README.md", import.meta.url);
+const contents = await readFile(readmeFileURL, "utf8");
 const updatedContents = contents.replace(
 	/<!-- BEGIN COMMANDS SECTION -->[\S\s]*?<!-- END COMMANDS SECTION -->/,
 	`<!-- BEGIN COMMANDS SECTION -->\n\n${markdown}\n\n<!-- END COMMANDS SECTION -->`,
 );
-await writeFile(new URL("../../README.md", import.meta.url), updatedContents, "utf8");
+await writeFile(readmeFileURL, updatedContents, "utf8");
+
 console.log("Updated README.md with command documentation.");
