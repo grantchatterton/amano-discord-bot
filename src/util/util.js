@@ -115,7 +115,7 @@ export async function getAIReply(message) {
 	try {
 		// Now make the OpenAI call with the fetched messages
 		const aiResponse = await openAI.chat.completions.create({
-			model: "gpt-4o-mini",
+			model: "gpt-5",
 			max_tokens: 500,
 			response_format: { type: "json_object" },
 			messages: [
