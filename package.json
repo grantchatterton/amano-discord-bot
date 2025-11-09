@@ -34,6 +34,7 @@
 		"@semantic-release/git": "^10.0.1",
 		"eslint": "^8.57.0",
 		"eslint-config-neon": "^0.1.62",
+		"eslint-plugin-unused-imports": "^4.3.0",
 		"husky": "^9.1.7",
 		"lint-staged": "^16.2.6",
 		"markdown-table-ts": "^1.0.3",
