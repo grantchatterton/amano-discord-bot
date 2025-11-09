@@ -1,4 +1,3 @@
-import { Buffer } from "node:buffer";
 import { AttachmentBuilder } from "discord.js";
 import AmanoImages from "../images.js";
 import { AMANO_QUOTES } from "../quotes.js";
