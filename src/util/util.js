@@ -110,7 +110,23 @@ export async function getAIReply(message) {
 	]);
 
 	const messages = messagesResult.status === "fulfilled" ? messagesResult.value : [];
-	const userMessage = { role: "user", content: message.content };
+
+	const userMessage = {
+		role: "user",
+		content: [{ type: "text", text: message.content }],
+	};
+
+	if (message.attachments.size > 0) {
+		const attachment = message.attachments.first();
+		if (attachment.contentType && attachment.contentType.startsWith("image/")) {
+			userMessage.content.push({
+				type: "image_url",
+				image_url: {
+					url: attachment.url,
+				},
+			});
+		}
+	}
 
 	try {
 		// Now make the OpenAI call with the fetched messages
