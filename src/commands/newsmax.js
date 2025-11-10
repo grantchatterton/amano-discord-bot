@@ -3,7 +3,7 @@ import axios from "axios";
 import * as cheerio from "cheerio";
 import NodeCache from "node-cache";
 
-const cache = new NodeCache({ stdTTL: 600, maxKeys: 1 }); // Remove after 10 minutes
+const cache = new NodeCache({ stdTTL: 900, maxKeys: 1 }); // Remove after 15 minutes
 
 async function getLatestArticle() {
 	if (cache.has("article")) {
