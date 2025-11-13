@@ -116,12 +116,10 @@ export async function getAIReply(message) {
 		content: [{ type: "text", text: message.content }],
 	};
 
-	const newUserMessage = { ...userMessage };
-
 	if (message.attachments.size > 0) {
 		const attachment = message.attachments.first();
 		if (attachment.contentType && attachment.contentType.startsWith("image/")) {
-			newUserMessage.content.push({
+			userMessage.content.push({
 				type: "image_url",
 				image_url: {
 					url: attachment.url,
@@ -170,7 +168,7 @@ export async function getAIReply(message) {
 					}`,
 				},
 				...messages,
-				newUserMessage,
+				userMessage,
 			],
 		});
 
@@ -183,7 +181,11 @@ export async function getAIReply(message) {
 			const user = userResponse.value;
 			if (user?.trackMessages) {
 				try {
-					await messageService.addMessages(message.guildId, userMessage, { role: "assistant", content });
+					await messageService.addMessages(
+						message.guildId,
+						{ role: "user", content: userMessage.content[0].text },
+						{ role: "assistant", content },
+					);
 				} catch (error) {
 					console.error(`Error adding messages: ${error}`);
 				}
