@@ -116,10 +116,12 @@ export async function getAIReply(message) {
 		content: [{ type: "text", text: message.content }],
 	};
 
+	const newUserMessage = { ...userMessage };
+
 	if (message.attachments.size > 0) {
 		const attachment = message.attachments.first();
 		if (attachment.contentType && attachment.contentType.startsWith("image/")) {
-			userMessage.content.push({
+			newUserMessage.content.push({
 				type: "image_url",
 				image_url: {
 					url: attachment.url,
@@ -168,7 +170,7 @@ export async function getAIReply(message) {
 					}`,
 				},
 				...messages,
-				userMessage,
+				newUserMessage,
 			],
 		});
 
