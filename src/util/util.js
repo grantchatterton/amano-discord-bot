@@ -1,5 +1,5 @@
 import { AttachmentBuilder } from "discord.js";
-import AmanoImages from "../images.js";
+import * as AmanoImages from "../images.js";
 import { AMANO_QUOTES } from "../quotes.js";
 import serviceContainer from "../services/serviceContainer.js";
 import { SWEAR_PATTERNS } from "../swears.js";
