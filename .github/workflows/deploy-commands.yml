@@ -5,7 +5,7 @@ on:
     branches:
       - main
     paths:
-      - 'src/commands/**'
+      - "src/commands/**"
   workflow_dispatch:
 
 jobs:
@@ -30,10 +30,10 @@ jobs:
         env:
           DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}
           APPLICATION_ID: ${{ secrets.APPLICATION_ID }}
-      
+
       - name: Update README commands table
         run: npm run docs:commands
-        
+
       - name: Commit updated README
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
