@@ -20,5 +20,10 @@ export default (sequelize) => {
 			defaultValue: true,
 			allowNull: false,
 		},
+		birthday: {
+			type: DataTypes.DATE,
+			allowNull: true,
+			defaultValue: null,
+		},
 	});
 };

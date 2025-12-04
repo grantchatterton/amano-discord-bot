@@ -20,6 +20,7 @@
 		"@discordjs/core": "^1.2.0",
 		"axios": "^1.12.2",
 		"cheerio": "^1.1.2",
+		"dayjs": "^1.11.19",
 		"discord.js": "^14.16.0",
 		"dotenv": "^16.6.1",
 		"mysql2": "^3.15.0",
