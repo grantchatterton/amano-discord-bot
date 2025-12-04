@@ -100,9 +100,7 @@ export default {
 				});
 				await guildService.setBirthdayWebhookUrl(interaction.guildId, webhook.url);
 
-				await interaction.editReply(
-					`Birthday announcements will be posted in ${channelMention(channel.id)} (${webhook.url}).`,
-				);
+				await interaction.editReply(`Birthday announcements will be posted in ${channelMention(channel.id)}.`);
 			} catch (error) {
 				console.error(error);
 				await interaction.editReply(
