@@ -19,7 +19,7 @@ I plan on updating this application in the future to support customization for w
 
 | Name      | Description                                                              |
 | --------- | ------------------------------------------------------------------------ |
-| /birthday | Set your birthday                                                        |
+| /birthday | Manage your birthday and birthday announcements                          |
 | /chance   | Set the chance of replying to a message containing a swear for a channel |
 | /flip     | Flip a coin                                                              |
 | /meme     | Send a random meme                                                       |
