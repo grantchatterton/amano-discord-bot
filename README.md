@@ -17,15 +17,16 @@ I plan on updating this application in the future to support customization for w
 
 <!-- BEGIN COMMANDS SECTION -->
 
-| Name     | Description                                                              |
-| -------- | ------------------------------------------------------------------------ |
-| /chance  | Set the chance of replying to a message containing a swear for a channel |
-| /flip    | Flip a coin                                                              |
-| /meme    | Send a random meme                                                       |
-| /newsmax | Fetch the latest breaking news story from Newsmax                        |
-| /ping    | Pong!                                                                    |
-| /roll    | Roll one or more dice                                                    |
-| /track   | Allows users to opt-in/out of having their messages tracked              |
+| Name      | Description                                                              |
+| --------- | ------------------------------------------------------------------------ |
+| /birthday | Set your birthday                                                        |
+| /chance   | Set the chance of replying to a message containing a swear for a channel |
+| /flip     | Flip a coin                                                              |
+| /meme     | Send a random meme                                                       |
+| /newsmax  | Fetch the latest breaking news story from Newsmax                        |
+| /ping     | Pong!                                                                    |
+| /roll     | Roll one or more dice                                                    |
+| /track    | Allows users to opt-in/out of having their messages tracked              |
 
 <!-- END COMMANDS SECTION -->
 
