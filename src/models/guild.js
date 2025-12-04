@@ -20,7 +20,7 @@ export default (sequelize) => {
 			allowNull: false,
 		},
 		birthdayWebhookUrl: {
-			type: DataTypes.STRING,
+			type: DataTypes.TEXT,
 			allowNull: true,
 			defaultValue: null,
 			get() {
