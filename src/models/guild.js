@@ -4,6 +4,14 @@ import { DataTypes } from "sequelize";
 
 const cryptr = new Cryptr(process.env.WEBHOOK_ENCRYPTION_KEY);
 
+function encryptURL(url) {
+	return cryptr.encrypt(url);
+}
+
+function decryptURL(encryptedUrl) {
+	return cryptr.decrypt(encryptedUrl);
+}
+
 /**
  * @type {import("./index.js").ModelLoader}
  */
@@ -20,15 +28,15 @@ export default (sequelize) => {
 			allowNull: false,
 		},
 		birthdayWebhookUrl: {
-			type: DataTypes.TEXT,
+			type: DataTypes.BLOB,
 			allowNull: true,
 			defaultValue: null,
 			get() {
 				const value = this.getDataValue("birthdayWebhookUrl");
-				return value ? cryptr.decrypt(value) : null;
+				return value ? decryptURL(value) : null;
 			},
 			set(value) {
-				this.setDataValue("birthdayWebhookUrl", value ? cryptr.encrypt(value) : null);
+				this.setDataValue("birthdayWebhookUrl", value ? encryptURL(value) : null);
 			},
 		},
 	});

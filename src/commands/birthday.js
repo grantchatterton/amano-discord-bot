@@ -99,7 +99,10 @@ export default {
 					avatar: interaction.client.user.displayAvatarURL(),
 				});
 				await guildService.setBirthdayWebhookUrl(interaction.guildId, webhook.url);
-				await interaction.editReply(`Birthday announcements will be posted in ${channelMention(channel.id)}.`);
+
+				await interaction.editReply(
+					`Birthday announcements will be posted in ${channelMention(channel.id)} (${webhook.url}).`,
+				);
 			} catch (error) {
 				console.error(error);
 				await interaction.editReply(
