@@ -229,6 +229,7 @@ Notes
 
 - **DISCORD_TOKEN** — (required) the bot token from Discord Developer Portal
 - **APPLICATION_ID** — (required for registering commands) your application's client id
+- **WEBHOOK_ENCRYPTION_KEY** — (required) encryption key for securing webhook URLs stored in the database; generate a secure random string (recommended: 32+ characters)
 - **OPENAI_API_KEY** — (optional) OpenAI API key for AI-generated replies; if not provided, the bot will use fallback generic replies
 - **MAX_MESSAGE_LIMIT** — (optional; defaults to `20`) maximum number of messages to track per guild for AI context before generating a summary
 - **DB_DIALECT** — (optional; defaults to `sqlite`) database dialect/engine to use

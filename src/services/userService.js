@@ -1,4 +1,6 @@
+import dayjs from "dayjs";
 import { Collection } from "discord.js";
+import { Op } from "sequelize";
 
 /**
  * Service for managing Discord user data and preferences.
@@ -47,5 +49,51 @@ export default class UserService {
 		}
 
 		return this.#userCollection.get(userId);
+	}
+
+	/**
+	 * Get all users from the database.
+	 *
+	 * @returns {Promise<import('sequelize').Model[]>} Array of user model instances
+	 */
+	async getAllUsers(options = {}) {
+		return this.#userModel.findAll(options);
+	}
+
+	/**
+	 * Get all users with a birthday on a specific month and day.
+	 *
+	 * @param {number} month - The month (1-12)
+	 * @param {number} day - The day (1-31)
+	 * @returns {Promise<import('sequelize').Model[]>} Array of user model instances
+	 */
+	async getUsersByBirthday(month, day) {
+		return this.#userModel.findAll({
+			where: {
+				birthday: {
+					[Op.ne]: null,
+				},
+				[Op.and]: [
+					this.#userModel.sequelize.where(
+						this.#userModel.sequelize.fn("MONTH", this.#userModel.sequelize.col("birthday")),
+						month,
+					),
+					this.#userModel.sequelize.where(
+						this.#userModel.sequelize.fn("DAY", this.#userModel.sequelize.col("birthday")),
+						day,
+					),
+				],
+			},
+		});
+	}
+
+	/**
+	 * Get all users with a birthday today.
+	 *
+	 * @returns {Promise<import('sequelize').Model[]>} Array of user model instances
+	 */
+	async getUsersWithBirthdayToday() {
+		const date = dayjs().tz("America/New_York");
+		return this.getUsersByBirthday(date.month() + 1, date.date());
 	}
 }
