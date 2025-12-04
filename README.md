@@ -132,6 +132,7 @@ Then edit `.env` to include your credentials:
 ```
 DISCORD_TOKEN=your_bot_token_here
 APPLICATION_ID=your_application_id_here
+WEBHOOK_ENCRYPTION_KEY=your_webhook_encryption_key
 # Optional - for AI-powered responses (fallback to generic replies if not provided)
 OPENAI_API_KEY=your_openai_key_here
 # Optional - defaults to 20
