@@ -3,8 +3,7 @@ import { URL } from "node:url";
 import dayjs from "dayjs";
 import timezone from "dayjs/plugin/timezone.js";
 import utc from "dayjs/plugin/utc.js";
-import { Client, GatewayIntentBits, Partials, userMention, WebhookClient } from "discord.js";
-import cron from "node-cron";
+import { Client, GatewayIntentBits, Partials } from "discord.js";
 import OpenAI from "openai";
 import { MAX_MESSAGE_LIMIT } from "./config.js";
 import { sequelize } from "./db/db.js";
@@ -58,52 +57,52 @@ registerEvents(commands, events, client);
 void client.login(process.env.DISCORD_TOKEN);
 
 // Schedule daily birthday checks at 8:00 AM EST
-cron.schedule("0 8 * * *", async () => {
-	const guildService = serviceContainer.resolve("guildService");
-	const userService = serviceContainer.resolve("userService");
+// cron.schedule("0 8 * * *", async () => {
+// 	const guildService = serviceContainer.resolve("guildService");
+// 	const userService = serviceContainer.resolve("userService");
 
-	try {
-		// Get users with birthdays today
-		const birthdayUsers = await userService.getUsersWithBirthdayToday();
+// 	try {
+// 		// Get users with birthdays today
+// 		const birthdayUsers = await userService.getUsersWithBirthdayToday();
 
-		// Group users by their guild's birthday webhook URL
-		const webhooksToAnnounce = new Map(); // webhookUrl -> [users]
-		const guilds = await guildService.getGuildsWithBirthdayWebhook();
-		for (const guild of guilds) {
-			// Try to fetch the current guild from the client cache
-			const clientGuild = client.guilds.cache.get(guild.guildId);
-			if (!clientGuild) {
-				continue;
-			}
+// 		// Group users by their guild's birthday webhook URL
+// 		const webhooksToAnnounce = new Map(); // webhookUrl -> [users]
+// 		const guilds = await guildService.getGuildsWithBirthdayWebhook();
+// 		for (const guild of guilds) {
+// 			// Try to fetch the current guild from the client cache
+// 			const clientGuild = client.guilds.cache.get(guild.guildId);
+// 			if (!clientGuild) {
+// 				continue;
+// 			}
 
-			// Fetch the list of members in the current guild
-			const clientGuildMembers = await clientGuild.members.fetch();
-			const clientGuildMembersWithBirthdays = birthdayUsers.filter((user) => clientGuildMembers.has(user.userId));
-			if (clientGuildMembersWithBirthdays.length === 0) {
-				continue;
-			}
+// 			// Fetch the list of members in the current guild
+// 			const clientGuildMembers = await clientGuild.members.fetch();
+// 			const clientGuildMembersWithBirthdays = birthdayUsers.filter((user) => clientGuildMembers.has(user.userId));
+// 			if (clientGuildMembersWithBirthdays.length === 0) {
+// 				continue;
+// 			}
 
-			const webhookUrl = guild.birthdayWebhookUrl;
-			webhooksToAnnounce.set(webhookUrl, clientGuildMembersWithBirthdays);
-		}
+// 			const webhookUrl = guild.birthdayWebhookUrl;
+// 			webhooksToAnnounce.set(webhookUrl, clientGuildMembersWithBirthdays);
+// 		}
 
-		// Announce birthdays via webhooks
-		for (const [webhookUrl, users] of webhooksToAnnounce.entries()) {
-			try {
-				const webhookClient = new WebhookClient({ url: webhookUrl });
-				for (const user of users) {
-					await webhookClient.send({
-						content: `🎉 Happy Birthday ${userMention(user.userId)}! 🎉`,
-					});
-				}
-			} catch (error) {
-				console.error("Error sending birthday announcement:", error);
-			}
-		}
-	} catch (error) {
-		console.error("Error during birthday announcement task:", error);
-	}
-});
+// 		// Announce birthdays via webhooks
+// 		for (const [webhookUrl, users] of webhooksToAnnounce.entries()) {
+// 			try {
+// 				const webhookClient = new WebhookClient({ url: webhookUrl });
+// 				for (const user of users) {
+// 					await webhookClient.send({
+// 						content: `🎉 Happy Birthday ${userMention(user.userId)}! 🎉`,
+// 					});
+// 				}
+// 			} catch (error) {
+// 				console.error("Error sending birthday announcement:", error);
+// 			}
+// 		}
+// 	} catch (error) {
+// 		console.error("Error during birthday announcement task:", error);
+// 	}
+// });
 
 // Terminate peacefully when "SIGINT" or "SIGTERM" received
 async function shutdown() {
